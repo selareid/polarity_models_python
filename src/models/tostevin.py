@@ -13,6 +13,9 @@ def default_a_func(kvals, lt, x):
 
 
 DEFAULT_PARAMETERS = {
+    "label": "tostevin",
+    "points_per_second": 2,
+    
     # General Setup Variables
     "Nx": 150,  # number of length steps
     "L": 50.0,  # length of region - model parameter
@@ -105,56 +108,90 @@ def run_model(args: dict = {}):
     # key values
     kvals: dict = {**params, "X": X, "deltax": deltax}
 
+    # default time points for solver output
+    kvals["t_eval"] = kvals["t_eval"] if "t_eval" in kvals else np.linspace(kvals["t0"], kvals["tL"], kvals["points_per_second"]*np.abs(kvals["tL"]-kvals["t0"]))
+
     # default initial condition if none passed
     kvals["initial_condition"] = kvals["initial_condition"] if "initial_condition" in kvals else np.append(
         np.ravel([[1, 0, 0, 1] for x_i in np.arange(0, kvals["Nx"])], order='F'), kvals["L"])
 
-    sol = integrate.solve_ivp(odefunc, [kvals["t0"], kvals["tL"]], kvals["initial_condition"], method="BDF", args=(kvals,))
+    sol = integrate.solve_ivp(odefunc, [kvals["t0"], kvals["tL"]], kvals["initial_condition"], method="BDF",
+                              t_eval=kvals["t_eval"], args=(kvals,))
 
     return sol, kvals
+
+
+# Plotting Functions
+def animate_plot(sol, kvals: dict, file_code: str = None):
+    if file_code is None:
+        file_code = f'{time.time_ns()}'[5:]
+
+    fig, ax = plt.subplots()
+    linePc, = ax.plot(kvals["X"], sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], 0], label="Pc", color="orange", linestyle="--")
+    lineAc, = ax.plot(kvals["X"], sol.y[kvals["Nx"]:2 * kvals["Nx"], 0], label="Ac", color="blue", linestyle="--")
+    linePm, = ax.plot(kvals["X"], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], 0], label="Pm", color="orange")
+    lineAm, = ax.plot(kvals["X"], sol.y[:kvals["Nx"], 0], label="Am", color="blue")
+    time_label = ax.text(0.1, 1.05, f"t={sol.t[0]}", transform=ax.transAxes, ha="center")
+
+    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:-1, :]) - 0.05, np.max(sol.y[:-1, :]) + 0.05],
+           xlabel="x",
+           ylabel="A/P")
+    ax.legend()
+
+    def animate(t_i):
+        lineAm.set_ydata(sol.y[:kvals["Nx"], t_i])
+        lineAc.set_ydata(sol.y[kvals["Nx"]:2 * kvals["Nx"], t_i])
+        linePm.set_ydata(sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], t_i])
+        linePc.set_ydata(sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], t_i])
+
+        time_label.set_text(f"t={sol.t[t_i]:.2f}")
+        return lineAm, lineAc, linePm, linePc, time_label
+
+    ani = animation.FuncAnimation(fig, animate, interval=5000/len(sol.t), blit=True, frames=len(sol.t))
+
+    file_name = f"{file_code}_refParModelOut.mp4"
+    print(f"Saving animation to {file_name}")
+    ani.save(file_name)
+    plt.show(block=False)
+
+
+def plot_lt(sol, kvals):
+    plt.figure()
+    ax = plt.subplot()
+    ax.plot(sol.t, sol.y[-1, :], label="l(t)")
+    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+    plt.xlabel("t")
+    plt.ylabel("length")
+    plt.show(block=False)
+
+
+def plot_final_timestep(sol, kvals):
+    plt.figure()
+    ax = plt.subplot()
+
+    ax.plot(kvals["X"], sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], -1], label="Pc", color="orange", linestyle="--")
+    ax.plot(kvals["X"], sol.y[kvals["Nx"]:2 * kvals["Nx"], -1], label="Ac", color="blue", linestyle="--")
+    ax.plot(kvals["X"], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], -1], label="Pm", color="orange")
+    ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1], label="Am", color="blue")
+
+    ax.text(0.1, 1.05, f"t={sol.t[-1]}", transform=ax.transAxes, ha="center")
+
+    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:-1, -1]) - 0.05, np.max(sol.y[:-1, -1]) + 0.05],
+           xlabel="x",
+           ylabel="A/P")
+    ax.legend()
+
+    plt.show(block=False)
 
 
 def plot(sol, kvals: dict):
     file_code = f'{time.time_ns()}'[5:]
 
-    # https://matplotlib.org/stable/gallery/animation/simple_anim.html
-    def animate_plot():
-        fig, ax = plt.subplots()
-        linePc, = ax.plot(kvals["X"], sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], 0], label="Pc", color="orange", linestyle="--")
-        lineAc, = ax.plot(kvals["X"], sol.y[kvals["Nx"]:2 * kvals["Nx"], 0], label="Ac", color="blue", linestyle="--")
-        linePm, = ax.plot(kvals["X"], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], 0], label="Pm", color="orange")
-        lineAm, = ax.plot(kvals["X"], sol.y[:kvals["Nx"], 0], label="Am", color="blue")
-        time_label = ax.text(0.1, 1.05, f"t={sol.t[0]}", transform=ax.transAxes, ha="center")
-
-        ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:-1, :]) - 0.05, np.max(sol.y[:-1, :]) + 0.05], xlabel="x",
-               ylabel="A/P")
-        ax.legend()
-
-        def animate(t_i):
-            lineAm.set_ydata(sol.y[:kvals["Nx"], t_i])
-            lineAc.set_ydata(sol.y[kvals["Nx"]:2 * kvals["Nx"], t_i])
-            linePm.set_ydata(sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], t_i])
-            linePc.set_ydata(sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], t_i])
-
-            time_label.set_text(f"t={sol.t[t_i]:.2f}")
-            return lineAm, lineAc, linePm, linePc, time_label
-
-        ani = animation.FuncAnimation(fig, animate, interval=20 * np.abs(kvals["tL"] - kvals["t0"]) / len(sol.t), blit=True,
-                                      frames=len(sol.t))
-        file_name = f"{file_code}_refParModelOut.mp4"
-        print(f"Saving animation to {file_name}")
-        ani.save(file_name)
-        plt.show()
-
-    def plot_lt():
-        plt.figure(1)
-        ax = plt.subplot()
-        ax.plot(sol.t, sol.y[-1, :], label="l(t)")
-        plt.xlabel("t")
-        plt.ylabel("length")
-        plt.show(block=False)
-
-    plot_lt()
-    animate_plot()
+    animate_plot(sol, kvals, file_code)
+    plot_lt(sol, kvals)
 
     return file_code
