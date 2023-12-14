@@ -1,6 +1,8 @@
 # Based on Goehring et al. 2011
+import time
 from typing import Callable
 import numpy as np
+from matplotlib import pyplot as plt, animation
 from scipy import integrate
 
 def default_v_func(kvals, x,t):
@@ -128,4 +130,49 @@ def run_model(args: dict = {}):
                               t_eval=kvals["t_eval"], args=(kvals,))
 
     return sol, kvals
+
+# Plotting
+def animate_plot(sol, kvals: dict, file_code: str = None):
+    if file_code is None:
+        file_code = f'{time.time_ns()}'[5:]
+
+    fig, ax = plt.subplots()
+    line1, = ax.plot(kvals["X"], sol.y[:kvals["Nx"], 0], label="anterior")
+    line2, = ax.plot(kvals["X"], sol.y[kvals["Nx"]:, 0], label="posterior")
+    time_label = ax.text(0.1, 1.05, f"t={sol.t[0]}", transform=ax.transAxes, ha="center")
+    linev, = ax.plot(kvals["X"], [kvals["v_func"](kvals, x, 0) for x in kvals["X"]], label="v", linestyle="--")
+
+    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y)-0.05,np.max(sol.y)+0.05], xlabel="x", ylabel="A/P")
+    ax.legend()
+
+    def animate(t_i):
+        linev.set_ydata([kvals["v_func"](kvals, x, 0) for x in kvals["X"]])
+        line1.set_ydata(sol.y[:kvals["Nx"], t_i])
+        line2.set_ydata(sol.y[kvals["Nx"]:, t_i])
+        time_label.set_text(f"t={sol.t[t_i]:.2f}")
+        return (line1, line2, linev, time_label)
+
+    ani = animation.FuncAnimation(fig, animate, interval=20 * np.abs(kvals["tL"] - kvals["t0"]) / len(sol.t), blit=True, frames=len(sol.t))
+    file_name = f"{file_code}_spatialPar.mp4"
+    print(f"Saving animation to {file_name}")
+    ani.save(file_name)
+    plt.show(block=False)
+
+def plot_final_timestep(sol, kvals):
+    plt.figure()
+    ax = plt.subplot()
+
+    ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1], label="anterior")
+    ax.plot(kvals["X"], sol.y[kvals["Nx"]:, -1], label="posterior")
+    ax.text(0.1, 1.05, f"t={sol.t[-1]}", transform=ax.transAxes, ha="center")
+    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, -1) for x in kvals["X"]], label="v", linestyle="--")
+
+    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:, -1])-0.05, np.max(sol.y[:, -1])+0.05], xlabel="x", ylabel="A/P")
+    ax.legend()
+
+    plt.show(block=False)
 
