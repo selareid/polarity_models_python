@@ -13,8 +13,8 @@ def default_v_func(kvals, x,t):
 
 
 Ybar = lambda kvals, Y: 2 * integrate.simpson(Y, kvals["X"]) / kvals["L"]  # handles both A-bar and P-bar
-default_A_cyto = lambda kvals, A: kvals["rho_A"] - kvals["psi"] * Ybar(kvals, A)
-default_P_cyto = lambda kvals, P: kvals["rho_P"] - kvals["psi"] * Ybar(kvals, P)
+def default_A_cyto(kvals, A): return kvals["rho_A"] - kvals["psi"] * Ybar(kvals, A)
+def default_P_cyto(kvals, P): return kvals["rho_P"] - kvals["psi"] * Ybar(kvals, P)
 
 DEFAULT_PARAMETERS = {
     "label": "goehring",
@@ -119,9 +119,7 @@ def run_model(args: dict = {}):
     kvals: dict = {**params, "X": X, "deltax": deltax}
 
     # default time points for solver output
-    kvals["t_eval"] = kvals["t_eval"] if "t_eval" in kvals else np.linspace(kvals["t0"], kvals["tL"],
-                                                                            kvals["points_per_second"] * np.abs(
-                                                                                kvals["tL"] - kvals["t0"]))
+    kvals["t_eval"] = kvals["t_eval"] if "t_eval" in kvals else np.linspace(kvals["t0"], kvals["tL"], int(kvals["points_per_second"] * np.abs(kvals["tL"] - kvals["t0"])))
 
     # default initial condition if none passed
     kvals["initial_condition"] = kvals["initial_condition"] if "initial_condition" in kvals else np.ravel([[0.5, 0.0] for x_i in np.arange(0, kvals["Nx"])], order='F')
