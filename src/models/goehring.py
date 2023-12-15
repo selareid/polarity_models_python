@@ -130,7 +130,7 @@ def run_model(args: dict = {}):
     return sol, kvals
 
 # Plotting
-def animate_plot(sol, kvals: dict, file_code: str = None):
+def animate_plot(sol, kvals: dict, save_file = False, file_code: str = None):
     if file_code is None:
         file_code = f'{time.time_ns()}'[5:]
 
@@ -153,9 +153,12 @@ def animate_plot(sol, kvals: dict, file_code: str = None):
         return (line1, line2, linev, time_label)
 
     ani = animation.FuncAnimation(fig, animate, interval=20 * np.abs(kvals["tL"] - kvals["t0"]) / len(sol.t), blit=True, frames=len(sol.t))
-    file_name = f"{file_code}_spatialPar.mp4"
-    print(f"Saving animation to {file_name}")
-    ani.save(file_name)
+
+    if save_file:
+        file_name = f"{file_code}_spatialPar.mp4"
+        print(f"Saving animation to {file_name}")
+        ani.save(file_name)
+
     plt.show(block=False)
 
 def plot_final_timestep(sol, kvals):
