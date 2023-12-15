@@ -177,3 +177,21 @@ def plot_final_timestep(sol, kvals):
 
     plt.show(block=False)
 
+
+# plot cytoplasmic quantities over time
+def plot_cyto(sol, kvals):
+    plt.figure()
+    ax = plt.subplot()
+
+    ax.plot(sol.t, [kvals["A_cyto"](kvals, sol.y[:kvals["Nx"], t_i]) for t_i in np.arange(0, len(sol.t))], label="A_cyto")
+    ax.plot(sol.t, [kvals["P_cyto"](kvals, sol.y[kvals["Nx"]:, t_i]) for t_i in np.arange(0, len(sol.t))], label="P_cyto")
+
+    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    ax.set(xlabel="time")
+
+    ax.title.set_text("Cytoplasmic Quantities")
+
+    ax.legend()
+    plt.show(block=False)
+
