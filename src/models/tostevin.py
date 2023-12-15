@@ -109,7 +109,7 @@ def run_model(args: dict = {}):
     kvals: dict = {**params, "X": X, "deltax": deltax}
 
     # default time points for solver output
-    kvals["t_eval"] = kvals["t_eval"] if "t_eval" in kvals else np.linspace(kvals["t0"], kvals["tL"], kvals["points_per_second"]*np.abs(kvals["tL"]-kvals["t0"]))
+    kvals["t_eval"] = kvals["t_eval"] if "t_eval" in kvals else np.linspace(kvals["t0"], kvals["tL"], int(kvals["points_per_second"]*np.abs(kvals["tL"]-kvals["t0"])))
 
     # default initial condition if none passed
     kvals["initial_condition"] = kvals["initial_condition"] if "initial_condition" in kvals else np.append(
