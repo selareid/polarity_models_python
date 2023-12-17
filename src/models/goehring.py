@@ -76,6 +76,12 @@ R_P = lambda kvals, A, P, P_cyto_r, t, x_i: kvals["k_onP"] * P_cyto_r \
 def odefunc(t, U, kvals):
     assert len(U) == 2 * kvals["Nx"]
 
+    # Failure so odefunc doesn't run forever trying to fix numerical issues
+    if min(U) < -100 or max(U) > 100:
+        print(f"FAILURE with goehring labelled {kvals['label']} at simulation time {t:.4f}")
+        plot_failure(U, t, kvals)
+        raise AssertionError
+
     A = U[:kvals["Nx"]]
     P = U[kvals["Nx"]:]
 

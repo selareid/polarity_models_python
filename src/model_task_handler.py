@@ -1,12 +1,17 @@
+import time
 from multiprocessing import Process, Queue, cpu_count
 from models import model_to_module
 
 
 def worker(input, output):
     for model, args in iter(input.get, 'STOP'):
-        print(f"Running task for model: {model}")
-        result = model_to_module(model).run_model(args)
-        output.put((model, result))
+        print(f"{time.time():.1f} Running task for model: {model}")
+        try:
+            result = model_to_module(model).run_model(args)
+            output.put((model, result))
+        except Exception as e:
+            print(f"{time.time():.1f} Exception occurred while running task for model {model}")
+            output.put((model, ("FAILURE",)))
 
 
 def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count() // 1.5)):

@@ -58,10 +58,11 @@ def discrete_diffusion_term(kvals: dict, Y, x_i):
 def odefunc(t, U, kvals):
     assert len(U) == 4 * kvals["Nx"] + 1
 
-    # global previous_second
-    # if int(t) > previous_second:
-    #     print(f"odefunc; t: {t:.2f}")
-    #     previous_second = int(t)
+    # Failure so odefunc doesn't run forever trying to fix numerical issues
+    if min(U) < -100 or max(U) > 100:
+        print(f"FAILURE with tostevin labelled {kvals['label']} at simulation time {t:.4f}")
+        plot_failure(U, t, kvals)
+        raise AssertionError
 
     Am = U[:kvals["Nx"]]
     Ac = U[kvals["Nx"]:2 * kvals["Nx"]]
