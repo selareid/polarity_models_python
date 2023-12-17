@@ -190,10 +190,86 @@ def plot_final_timestep(sol, kvals):
     plt.show(block=False)
 
 
-def plot(sol, kvals: dict):
-    file_code = f'{time.time_ns()}'[5:]
+def plot_overall_quantities_over_time(sol, kvals, normalised=True):
+    plt.figure()
+    ax = plt.subplot()
 
-    animate_plot(sol, kvals, file_code)
-    plot_lt(sol, kvals)
+    normalise_term = 1 if not normalised else np.abs(kvals["xL"]-kvals["x0"])
 
-    return file_code
+    ax.plot(sol.t, [integrate.trapezoid(sol.y[:kvals["Nx"], t_i], dx=kvals["deltax"])/normalise_term for t_i in np.arange(0, len(sol.t))], label="Am", color="blue")
+    ax.plot(sol.t, [integrate.trapezoid(sol.y[kvals["Nx"]:2 * kvals["Nx"], t_i], dx=kvals["deltax"])/normalise_term for t_i in np.arange(0, len(sol.t))], label="Ac", color="blue", linestyle="--")
+    ax.plot(sol.t, [integrate.trapezoid(sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], t_i], dx=kvals["deltax"])/normalise_term for t_i in np.arange(0, len(sol.t))], label="Pm", color="orange")
+    ax.plot(sol.t, [integrate.trapezoid(sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], t_i], dx=kvals["deltax"])/normalise_term for t_i in np.arange(0, len(sol.t))], label="Pc", color="orange", linestyle="--")
+
+    ax.plot(sol.t, sol.y[-1, :]/normalise_term, label="l(t)")
+
+    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    ax.set(xlabel="time")
+
+    ax.title.set_text("Quantities")
+
+    ax.legend()
+    plt.show(block=False)
+
+
+def plot_multi_final_timestep(sol_list, kvals_list, label=DEFAULT_PARAMETERS["label"], plot_Am=True, plot_Ac=True, plot_Pm=True, plot_Pc=True):
+    assert plot_Am or plot_Ac or plot_Pm or plot_Pc
+
+    kvals = kvals_list[0]
+
+    plt.figure()
+    ax = plt.subplot()
+
+    bounds = (np.inf, -np.inf)
+
+    for i in np.arange(0, len(sol_list)):
+        sol = sol_list[i]
+        kvals_this_sol = kvals_list[i]
+
+        if plot_Am:
+            ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1], label=f"Am_{kvals_this_sol['label']}", color=(0.3 + (i % 3)/4, 0.75 - 0.50*i/len(sol_list),0.5 + 0.50*i/len(sol_list)))
+            bounds = (np.minimum(np.min(sol.y[:kvals["Nx"], -1]), bounds[0]), np.maximum(np.max(sol.y[:kvals["Nx"], -1]), bounds[1]))
+        if plot_Ac:
+            ax.plot(kvals["X"], sol.y[kvals["Nx"]:2 * kvals["Nx"], -1], label=f"Ac_{kvals_this_sol['label']}", color=(0.3 + (i % 3)/4, 0.75 - 0.50*i/len(sol_list),0.5 + 0.50*i/len(sol_list)), linestyle="--")
+            bounds = (np.minimum(np.min(sol.y[kvals["Nx"]:2 * kvals["Nx"], -1]), bounds[0]), np.maximum(np.max(sol.y[kvals["Nx"]:2 * kvals["Nx"], -1]), bounds[1]))
+        if plot_Pm:
+            ax.plot(kvals["X"], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], -1], label=f"Pm_{kvals_this_sol['label']}", color=(0.3 + (i % 3)/4, 0.75 - 0.50*i/len(sol_list),0.5 + 0.50*i/len(sol_list)))
+            bounds = (np.minimum(np.min(sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], -1]), bounds[0]), np.maximum(np.max(sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], -1]), bounds[1]))
+        if plot_Pc:
+            ax.plot(kvals["X"], sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], -1], label=f"Pc_{kvals_this_sol['label']}", color=(0.3 + (i % 3)/4, 0.75 - 0.50*i/len(sol_list),0.5 + 0.50*i/len(sol_list)), linestyle="--")
+            bounds = (np.minimum(np.min(sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], -1]), bounds[0]), np.maximum(np.max(sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], -1]), bounds[1]))
+
+    ax.text(0.1, 1.05, f"t={sol_list[0].t[-1]}", transform=ax.transAxes, ha="center") # timestamp
+    ax.text(1, 1.05, label, transform=ax.transAxes, ha="center") # label
+
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[bounds[0]-0.05, bounds[1]+0.05], xlabel="x", ylabel="A/P")
+    ax.title.set_text("Multiple Sims")
+    ax.legend()
+
+    plt.show(block=False)
+
+#     ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1], label="Am", color="blue")
+#     ax.plot(kvals["X"], sol.y[kvals["Nx"]:2 * kvals["Nx"], -1], label="Ac", color="blue", linestyle="--")
+#     ax.plot(kvals["X"], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], -1], label="Pm", color="orange")
+#     ax.plot(kvals["X"], sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], -1], label="Pc", color="orange", linestyle="--")
+
+
+def plot_failure(U, t, kvals):
+    plt.figure()
+    ax = plt.subplot()
+
+    ax.plot(kvals["X"], U[:kvals["Nx"]], label="Am", color="blue")
+    ax.plot(kvals["X"], U[kvals["Nx"]:2 * kvals["Nx"]], label="Ac", color="blue", linestyle="--")
+    ax.plot(kvals["X"], U[2 * kvals["Nx"]:3 * kvals["Nx"]], label="Pm", color="orange")
+    ax.plot(kvals["X"], U[3 * kvals["Nx"]:4 * kvals["Nx"]], label="Pc", color="orange", linestyle="--")
+
+    ax.text(0.1, 1.05, f"t={t}", transform=ax.transAxes, ha="center")
+
+    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(U[:-1])-0.05, np.max(U[:-1])+0.05], xlabel="x", ylabel="A/P")
+    ax.title.set_text("Failure Plot")
+    ax.legend()
+
+    plt.show(block=False)

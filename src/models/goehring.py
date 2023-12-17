@@ -135,10 +135,10 @@ def animate_plot(sol, kvals: dict, save_file = False, file_code: str = None):
         file_code = f'{time.time_ns()}'[5:]
 
     fig, ax = plt.subplots()
-    line1, = ax.plot(kvals["X"], sol.y[:kvals["Nx"], 0], label="anterior")
-    line2, = ax.plot(kvals["X"], sol.y[kvals["Nx"]:, 0], label="posterior")
+    line1, = ax.plot(kvals["X"], sol.y[:kvals["Nx"], 0], label="anterior", color="blue")
+    line2, = ax.plot(kvals["X"], sol.y[kvals["Nx"]:, 0], label="posterior", color="orange")
     time_label = ax.text(0.1, 1.05, f"t={sol.t[0]}", transform=ax.transAxes, ha="center")
-    linev, = ax.plot(kvals["X"], [kvals["v_func"](kvals, x, 0) for x in kvals["X"]], label="v", linestyle="--")
+    linev, = ax.plot(kvals["X"], [kvals["v_func"](kvals, x, 0) for x in kvals["X"]], label="v", linestyle="--", color="black")
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 
@@ -165,10 +165,10 @@ def plot_final_timestep(sol, kvals):
     plt.figure()
     ax = plt.subplot()
 
-    ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1], label="anterior")
-    ax.plot(kvals["X"], sol.y[kvals["Nx"]:, -1], label="posterior")
+    ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1], label="anterior", color="blue")
+    ax.plot(kvals["X"], sol.y[kvals["Nx"]:, -1], label="posterior", color="orange")
     ax.text(0.1, 1.05, f"t={sol.t[-1]}", transform=ax.transAxes, ha="center")
-    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, -1) for x in kvals["X"]], label="v", linestyle="--")
+    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, -1) for x in kvals["X"]], label="v", linestyle="--", color="black")
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 
@@ -183,8 +183,8 @@ def plot_cyto(sol, kvals):
     plt.figure()
     ax = plt.subplot()
 
-    ax.plot(sol.t, [kvals["A_cyto"](kvals, sol.y[:kvals["Nx"], t_i]) for t_i in np.arange(0, len(sol.t))], label="A_cyto")
-    ax.plot(sol.t, [kvals["P_cyto"](kvals, sol.y[kvals["Nx"]:, t_i]) for t_i in np.arange(0, len(sol.t))], label="P_cyto")
+    ax.plot(sol.t, [kvals["A_cyto"](kvals, sol.y[:kvals["Nx"], t_i]) for t_i in np.arange(0, len(sol.t))], label="A_cyto", color="blue")
+    ax.plot(sol.t, [kvals["P_cyto"](kvals, sol.y[kvals["Nx"]:, t_i]) for t_i in np.arange(0, len(sol.t))], label="P_cyto", color="orange")
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 
@@ -195,3 +195,68 @@ def plot_cyto(sol, kvals):
     ax.legend()
     plt.show(block=False)
 
+def plot_overall_quantities_over_time(sol, kvals):
+    plt.figure()
+    ax = plt.subplot()
+
+ #TODO - note I'm a bit suspicious of if I should plot with or without the psi multiple
+    ax.plot(sol.t, [kvals["A_cyto"](kvals, sol.y[:kvals["Nx"], t_i]) for t_i in np.arange(0, len(sol.t))],
+            label="A_cyto", color="blue", linestyle="--")
+    ax.plot(sol.t, [kvals["P_cyto"](kvals, sol.y[kvals["Nx"]:, t_i]) for t_i in np.arange(0, len(sol.t))],
+            label="P_cyto", color="orange", linestyle="--")
+
+    ax.plot(sol.t, [Ybar(kvals, sol.y[:kvals["Nx"], t_i]) for t_i in np.arange(0, len(sol.t))], label="A_bar", color="blue")
+    ax.plot(sol.t, [Ybar(kvals, sol.y[kvals["Nx"]:, t_i]) for t_i in np.arange(0, len(sol.t))], label="P_bar", color="orange")
+
+    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    ax.set(xlabel="time")
+
+    ax.title.set_text("Quantities")
+
+    ax.legend()
+    plt.show(block=False)
+
+
+# plot a bunch of different solutions final timestep (just A,P) on single figure
+# Assumes that all solutions have the same X,Nx,x0,xL, and time points
+def plot_multi_final_timestep(sol_list, kvals_list, label=DEFAULT_PARAMETERS["label"], plot_A=True, plot_P=True):
+    kvals = kvals_list[0]
+
+    plt.figure()
+    ax = plt.subplot()
+
+    for i in np.arange(0,len(sol_list)):
+        sol = sol_list[i]
+        kvals_this_sol = kvals_list[i]
+
+        if plot_A:
+            ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1], label=f"A_{kvals_this_sol['label']}", color=(0.3 + (i % 3)/4, 0.75 - 0.50*i/len(sol_list),0.5 + 0.50*i/len(sol_list)))
+        if plot_P:
+            ax.plot(kvals["X"], sol.y[kvals["Nx"]:, -1], label=f"P_{kvals_this_sol['label']}", color=(0.3 + (i % 3)/4, 0.75 - 0.50*i/len(sol_list),0.5 + 0.50*i/len(sol_list)))
+
+    ax.text(0.1, 1.05, f"t={sol_list[0].t[-1]}", transform=ax.transAxes, ha="center") # timestamp
+    ax.text(1, 1.05, label, transform=ax.transAxes, ha="center") # label
+
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min([sol.y[:, -1] for sol in sol_list])-0.05, np.max([sol.y[:, -1] for sol in sol_list])+0.05], xlabel="x", ylabel="A/P")
+    ax.title.set_text("Multiple Sims")
+    ax.legend()
+
+    plt.show(block=False)
+
+def plot_failure(U, t, kvals):
+    plt.figure()
+    ax = plt.subplot()
+
+    ax.plot(kvals["X"], U[:kvals["Nx"]], label="anterior", color="blue")
+    ax.plot(kvals["X"], U[kvals["Nx"]:], label="posterior", color="orange")
+    ax.text(0.1, 1.05, f"t={t}", transform=ax.transAxes, ha="center")
+    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, -1) for x in kvals["X"]], label="v", linestyle="--", color="black")
+
+    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(U)-0.05, np.max(U)+0.05], xlabel="x", ylabel="A/P")
+    ax.title.set_text("Failure Plot")
+    ax.legend()
+
+    plt.show(block=False)
