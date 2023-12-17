@@ -34,7 +34,7 @@ def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count() // 1.5)):
     # get and handle results (unordered)
     for i in range(len(task_list)):
         model, res = done_queue.get()
-        print(f"Finished running a task for model: {model}")
+        print(f"{time.time():.1f} Finished running a task for model: {model}")
         output_list.append((model,)+res)
 
     # stop child processes
