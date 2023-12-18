@@ -49,7 +49,7 @@ DEFAULT_PARAMETERS = {
 }
 
 
-def discrete_diffusion_term(kvals: dict, Y, x_i):
+def disc_diffusion_term(kvals: dict, Y, x_i):
     # This function accounts for boundary reflection
     if x_i == 0:  # left boundary
         return (Y[1] - 2 * Y[0] + Y[1]) / kvals["deltax"] ** 2  # reflect Y[-1] to Y[1]
@@ -61,7 +61,7 @@ def discrete_diffusion_term(kvals: dict, Y, x_i):
 
 
 # where func is a function of type x_i -> float
-def discrete_spatial_derivative(kvals: dict, func: Callable[[int], float], x_i):
+def disc_spatial_derivative(kvals: dict, func: Callable[[int], float], x_i):
     return (func(x_i + 1) - func(x_i)) / kvals["deltax"]
 
 R_A = lambda kvals, A, P, A_cyto_r, t, x_i: kvals["k_onA"] * A_cyto_r \
@@ -89,23 +89,23 @@ def odefunc(t, U, kvals):
     A_cyto_r = kvals["A_cyto"](kvals, A)
     P_cyto_r = kvals["P_cyto"](kvals, P)
 
-    # manually handle right boundary ( x_i = Nx-1 ) since v(x,t)
+    # manually handle right boundary ( x_i = Nx-1 ) since v(x,t) is odd
     # reflect Nx over Nx-1 to Nx-2; for v_func, also negate on the reflection as v(x)=-v(-x)
-    dudt_A[kvals["Nx"]-1] = kvals["D_A"] * discrete_diffusion_term(kvals, A, kvals["Nx"]-1) \
-        - (kvals["v_func"](kvals, kvals["X"][kvals["Nx"]-2], t) * A[kvals["Nx"]-2] - kvals["v_func"](kvals, kvals["X"][kvals["Nx"]-1], t) * A[kvals["Nx"]-1]) / kvals["deltax"] \
+    dudt_A[kvals["Nx"]-1] = kvals["D_A"] * disc_diffusion_term(kvals, A, kvals["Nx"]-1) \
+        - (-kvals["v_func"](kvals, kvals["X"][kvals["Nx"]-2], t) * A[kvals["Nx"]-2] - kvals["v_func"](kvals, kvals["X"][kvals["Nx"]-1], t) * A[kvals["Nx"]-1]) / kvals["deltax"] \
         + R_A(kvals, A, P, A_cyto_r, t, kvals["Nx"]-1)
-    dudt_P[kvals["Nx"]-1] = kvals["D_P"] * discrete_diffusion_term(kvals, P, kvals["Nx"]-1) \
-        - (kvals["v_func"](kvals, kvals["X"][kvals["Nx"]-2], t) * P[kvals["Nx"]-2] - kvals["v_func"](kvals, kvals["X"][kvals["Nx"]-1], t) * P[kvals["Nx"]-1]) / kvals["deltax"] \
+    dudt_P[kvals["Nx"]-1] = kvals["D_P"] * disc_diffusion_term(kvals, P, kvals["Nx"]-1) \
+        - (-kvals["v_func"](kvals, kvals["X"][kvals["Nx"]-2], t) * P[kvals["Nx"]-2] - kvals["v_func"](kvals, kvals["X"][kvals["Nx"]-1], t) * P[kvals["Nx"]-1]) / kvals["deltax"] \
         + R_P(kvals, A, P, P_cyto_r, t, kvals["Nx"]-1)
 
     # insides
     # diffusion function handles left boundary
     for x_i in np.arange(0, kvals["Nx"] - 1):
-        dudt_A[x_i] = kvals["D_A"] * discrete_diffusion_term(kvals, A, x_i) \
-              - discrete_spatial_derivative(kvals, lambda x_ii: kvals["v_func"](kvals, kvals["X"][x_ii], t) * A[x_ii], x_i) \
+        dudt_A[x_i] = kvals["D_A"] * disc_diffusion_term(kvals, A, x_i) \
+              - disc_spatial_derivative(kvals, lambda x_ii: kvals["v_func"](kvals, kvals["X"][x_ii], t) * A[x_ii], x_i) \
               + R_A(kvals, A, P, A_cyto_r, t, x_i)
-        dudt_P[x_i] = kvals["D_P"] * discrete_diffusion_term(kvals, P, x_i) \
-              - discrete_spatial_derivative(kvals, lambda x_ii: kvals["v_func"](kvals, kvals["X"][x_ii], t) * P[x_ii], x_i) \
+        dudt_P[x_i] = kvals["D_P"] * disc_diffusion_term(kvals, P, x_i) \
+              - disc_spatial_derivative(kvals, lambda x_ii: kvals["v_func"](kvals, kvals["X"][x_ii], t) * P[x_ii], x_i) \
               + R_P(kvals, A, P, P_cyto_r, t, x_i)
 
     return np.ravel([dudt_A, dudt_P])
