@@ -6,10 +6,7 @@ from matplotlib import pyplot as plt, animation
 from scipy import integrate
 
 def default_v_func(kvals, x,t):
-    if t > 1000:
-        return 0*x
-    else:
-        return -x*(x-190)*(x-35) / (700000*(np.maximum(1,np.abs((t-120)/80)))**2)
+    return -x*(x-190)*(x-35) / (700000*(np.maximum(1,np.abs((t-120)/80)))**2)
 
 
 Ybar = lambda kvals, Y: 2 * integrate.simpson(Y, kvals["X"]) / kvals["L"]  # handles both A-bar and P-bar
