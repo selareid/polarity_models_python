@@ -273,4 +273,4 @@ def plot_failure(U, t, kvals):
     ax.title.set_text("Failure Plot")
     ax.legend()
 
-    plt.show(block=False)
+    plt.show(block=True)

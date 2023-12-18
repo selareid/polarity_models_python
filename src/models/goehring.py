@@ -149,13 +149,13 @@ def animate_plot(sol, kvals: dict, save_file = False, file_code: str = None):
     ax.legend()
 
     def animate(t_i):
-        linev.set_ydata([kvals["v_func"](kvals, x, 0) for x in kvals["X"]])
+        linev.set_ydata([kvals["v_func"](kvals, x, sol.t[t_i]) for x in kvals["X"]])
         line1.set_ydata(sol.y[:kvals["Nx"], t_i])
         line2.set_ydata(sol.y[kvals["Nx"]:, t_i])
         time_label.set_text(f"t={sol.t[t_i]:.2f}")
         return (line1, line2, linev, time_label)
 
-    ani = animation.FuncAnimation(fig, animate, interval=20 * np.abs(kvals["tL"] - kvals["t0"]) / len(sol.t), blit=True, frames=len(sol.t))
+    ani = animation.FuncAnimation(fig, animate, interval=5000/len(sol.t), blit=True, frames=len(sol.t))
 
     if save_file:
         file_name = f"{file_code}_spatialPar.mp4"
@@ -171,7 +171,7 @@ def plot_final_timestep(sol, kvals):
     ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1], label="anterior", color="blue")
     ax.plot(kvals["X"], sol.y[kvals["Nx"]:, -1], label="posterior", color="orange")
     ax.text(0.1, 1.05, f"t={sol.t[-1]}", transform=ax.transAxes, ha="center")
-    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, -1) for x in kvals["X"]], label="v", linestyle="--", color="black")
+    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, sol.t[-1]) for x in kvals["X"]], label="v", linestyle="--", color="black")
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 
@@ -254,7 +254,7 @@ def plot_failure(U, t, kvals):
     ax.plot(kvals["X"], U[:kvals["Nx"]], label="anterior", color="blue")
     ax.plot(kvals["X"], U[kvals["Nx"]:], label="posterior", color="orange")
     ax.text(0.1, 1.05, f"t={t}", transform=ax.transAxes, ha="center")
-    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, -1) for x in kvals["X"]], label="v", linestyle="--", color="black")
+    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, t) for x in kvals["X"]], label="v", linestyle="--", color="black")
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 
@@ -262,4 +262,4 @@ def plot_failure(U, t, kvals):
     ax.title.set_text("Failure Plot")
     ax.legend()
 
-    plt.show(block=False)
+    plt.show(block=True)
