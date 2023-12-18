@@ -5,6 +5,7 @@ from scipy import integrate
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+
 def default_a_func(kvals, lt, x):
     if 0 <= x <= lt:
         return kvals["a_0"] * kvals["L"] / lt
@@ -81,7 +82,6 @@ def odefunc(t, U, kvals):
     lambda_t = kvals["lambda_0"] - kvals["lambda_1"] * m_t
     dudt_L = -kvals["epsilon"] * (l - lambda_t) / lambda_t
 
-    # insides
     # boundary conditions x=0,x=Nx-1 handled here since only relevant to the diffusion term
     for x_i in np.arange(0, kvals["Nx"]):
         dudt_Am[x_i] = kvals["Dm"] * discrete_diffusion_term(kvals, Am, x_i) \
@@ -100,7 +100,6 @@ def odefunc(t, U, kvals):
 
 def run_model(args: dict = {}):
     params = {**DEFAULT_PARAMETERS, **args}
-    # TODO - test that this overrides defaults as expected
 
     # calculate other widely used values
     X = np.linspace(params["x0"], params["xL"], params["Nx"])

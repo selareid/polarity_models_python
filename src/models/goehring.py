@@ -202,7 +202,7 @@ def plot_overall_quantities_over_time(sol, kvals):
     plt.figure()
     ax = plt.subplot()
 
- #TODO - note I'm a bit suspicious of if I should plot with or without the psi multiple
+    #TODO - unsure if I should plot with or without the psi multiple
     ax.plot(sol.t, [kvals["A_cyto"](kvals, sol.y[:kvals["Nx"], t_i]) for t_i in np.arange(0, len(sol.t))],
             label="A_cyto", color="blue", linestyle="--")
     ax.plot(sol.t, [kvals["P_cyto"](kvals, sol.y[kvals["Nx"]:, t_i]) for t_i in np.arange(0, len(sol.t))],

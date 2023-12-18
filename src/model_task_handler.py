@@ -14,7 +14,8 @@ def worker(input, output):
             output.put((model, ("FAILURE",)))
 
 
-def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count() // 1.5)):
+# Output of form [(model, sol, kvals),...]
+def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=cpu_count()-1):#int(cpu_count() // 1.5)):
     assert NUMBER_OF_PROCESSES >= 1
 
     # create queues
