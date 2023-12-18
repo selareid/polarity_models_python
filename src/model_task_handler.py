@@ -10,7 +10,7 @@ def worker(input, output):
             result = model_to_module(model).run_model(args)
             output.put((model, result))
         except Exception as e:
-            print(f"{time.time():.1f} Exception occurred while running task for model {model}")
+            print(f"{time.time():.1f} Exception occurred while running task for model {model}; {e}")
             output.put((model, ("FAILURE",)))
 
 
