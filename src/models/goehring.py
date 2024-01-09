@@ -273,3 +273,47 @@ def plot_failure(U, t, kvals):
     ax.legend()
 
     plt.show(block=True)
+
+# variation_sets is a list [([sol,sol,sol], [kvals, kvals, kvals]), ... ]
+# assumes kvals has key_varied property
+# can handle sol with value "FAILURE"
+def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axis_labels: list[str] | None = None):
+    plt.figure()
+    ax = plt.subplot()
+
+    # add then remove plot with xticks so that they get ordered correctly in the figure
+    sentinel, = ax.plot(x_axis_labels, [0.5]*len(x_axis_labels))
+    sentinel.remove()
+
+    for i in np.arange(0, len(variation_sets)):
+        variation = variation_sets[i]
+        sol_list = variation[0]
+        kvals_list = variation[1]
+
+        polarity_m_list = []
+        xticks = []
+        color = (np.minimum(1, 0.3 + (i % 6)/7), 0.75 - 0.50*i/len(variation_sets),0.5 + 0.50*i/len(variation_sets))
+
+        for j in np.arange(0, len(sol_list)):
+            sol = sol_list[j]
+            kvals = kvals_list[j]
+
+            if not sol == "FAILURE":
+                polarity_m = polarity_measure(kvals["X"], sol.y[:kvals["Nx"], -1], sol.y[kvals["Nx"]:, -1], kvals["Nx"])
+                xtick = x_axis_labels[j] if x_axis_labels is not None else j
+
+                # jitter the near-0 values so they are visible
+                if polarity_m<0.02:
+                    polarity_m += 0.02*i/len(variation_sets)-0.01
+
+                polarity_m_list.append(polarity_m)
+                xticks.append(xtick)
+                ax.scatter(xtick, polarity_m, color=color)
+
+        ax.plot(xticks, polarity_m_list, "--", label=kvals_list[1]["key_varied"], color=color)
+
+    ax.legend()
+    ax.set(xlabel="percentage of baseline value", ylabel="polarity", ylim=[-0.1,1.1])
+    ax.title.set_text(label)
+    plt.show(block=False)
+
