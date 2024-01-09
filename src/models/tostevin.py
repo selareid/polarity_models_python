@@ -120,6 +120,16 @@ def run_model(args: dict = {}):
 
     return sol, kvals
 
+# Analysis Metric
+# A,P just on membrane
+def polarity_measure(X, Am, Pm, Nx):
+    a_first = integrate.simpson(Am[:Nx//2], X[:Nx//2])
+    a_second = integrate.simpson(Am[Nx//2:], X[Nx//2:])
+    p_first = integrate.simpson(Pm[:Nx//2], X[:Nx//2])
+    p_second = integrate.simpson(Pm[Nx//2:], X[Nx//2:])
+
+    return 0 if ((a_first + a_second)*(p_first + p_second)) == 0 else np.abs(a_first - a_second) * np.abs(p_first - p_second) / ((a_first + a_second)*(p_first + p_second))
+
 
 # Plotting Functions
 def animate_plot(sol, kvals: dict, save_file = False, file_code: str = None):
