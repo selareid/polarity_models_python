@@ -143,26 +143,33 @@ def polarity_measure(X, A, P, Nx):
 
 
 # Plotting
-def animate_plot(sol, kvals: dict, save_file = False, file_code: str = None):
+def animate_plot(sol, kvals: dict, save_file=False, file_code: str = None, rescale=False):
     if file_code is None:
         file_code = f'{time.time_ns()}'[5:]
 
+    # rescale so maximal protein quantity is 1
+    scalar = 1 if not rescale else np.max(sol.y)
+    v_rescale_for_visibility = np.max(sol.y)/scalar * 10 # rescale so 0.1 is equal to max protein quantity in the plotting of v
+
+
     fig, ax = plt.subplots()
-    line1, = ax.plot(kvals["X"], sol.y[:kvals["Nx"], 0], label="anterior", color="blue")
-    line2, = ax.plot(kvals["X"], sol.y[kvals["Nx"]:, 0], label="posterior", color="orange")
-    time_label = ax.text(0.1, 1.05, f"t={sol.t[0]}", transform=ax.transAxes, ha="center")
-    linev, = ax.plot(kvals["X"], [kvals["v_func"](kvals, x, 0) for x in kvals["X"]], label="v", linestyle="--", color="black")
+    line1, = ax.plot(kvals["X"], sol.y[:kvals["Nx"], 0]/scalar, label="anterior", color="blue")
+    line2, = ax.plot(kvals["X"], sol.y[kvals["Nx"]:, 0]/scalar, label="posterior", color="orange")
+    p_m = polarity_measure(kvals["X"], sol.y[:kvals["Nx"], 0], sol.y[kvals["Nx"]:, 0], kvals["Nx"])
+    time_label = ax.text(0.1, 1.05, f"t={sol.t[0]} p={p_m:.4f}", transform=ax.transAxes, ha="center")
+    linev, = ax.plot(kvals["X"], [v_rescale_for_visibility*kvals["v_func"](kvals, x, 0) for x in kvals["X"]], label="v", linestyle="--", color="black")
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 
-    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y)-0.05,np.max(sol.y)+0.05], xlabel="x", ylabel="A/P")
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y)/scalar-0.05,np.max(sol.y)/scalar+0.05], xlabel="x", ylabel="A/P")
     ax.legend()
 
     def animate(t_i):
-        linev.set_ydata([kvals["v_func"](kvals, x, sol.t[t_i]) for x in kvals["X"]])
-        line1.set_ydata(sol.y[:kvals["Nx"], t_i])
-        line2.set_ydata(sol.y[kvals["Nx"]:, t_i])
-        time_label.set_text(f"t={sol.t[t_i]:.2f}")
+        linev.set_ydata([v_rescale_for_visibility*kvals["v_func"](kvals, x, sol.t[t_i]) for x in kvals["X"]])
+        line1.set_ydata(sol.y[:kvals["Nx"], t_i]/scalar)
+        line2.set_ydata(sol.y[kvals["Nx"]:, t_i]/scalar)
+        p_m = polarity_measure(kvals["X"], sol.y[:kvals["Nx"], t_i], sol.y[kvals["Nx"]:, t_i], kvals["Nx"])
+        time_label.set_text(f"t={sol.t[t_i]:.2f} p={p_m:.4f}")
         return (line1, line2, linev, time_label)
 
     ani = animation.FuncAnimation(fig, animate, interval=5000/len(sol.t), blit=True, frames=len(sol.t))
@@ -174,18 +181,21 @@ def animate_plot(sol, kvals: dict, save_file = False, file_code: str = None):
 
     plt.show(block=False)
 
-def plot_final_timestep(sol, kvals):
+
+def plot_final_timestep(sol, kvals, rescale=False):
     plt.figure()
     ax = plt.subplot()
 
-    ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1], label="anterior", color="blue")
-    ax.plot(kvals["X"], sol.y[kvals["Nx"]:, -1], label="posterior", color="orange")
-    ax.text(0.1, 1.05, f"t={sol.t[-1]}", transform=ax.transAxes, ha="center")
-    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, sol.t[-1]) for x in kvals["X"]], label="v", linestyle="--", color="black")
+    scalar = 1 if not rescale else np.max(sol.y)
+
+    ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1]/scalar, label="anterior", color="blue") # A
+    ax.plot(kvals["X"], sol.y[kvals["Nx"]:, -1]/scalar, label="posterior", color="orange") # P
+    ax.text(0.1, 1.05, f"t={sol.t[-1]}", transform=ax.transAxes, ha="center") # time value
+    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, sol.t[-1]) for x in kvals["X"]], label="v", linestyle="--", color="black") # v_func
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 
-    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:, -1])-0.05, np.max(sol.y[:, -1])+0.05], xlabel="x", ylabel="A/P")
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:, -1])/scalar-0.05, np.max(sol.y[:, -1])/scalar+0.05], xlabel="x", ylabel="A/P")
     ax.legend()
 
     plt.show(block=False)
@@ -208,18 +218,21 @@ def plot_cyto(sol, kvals):
     ax.legend()
     plt.show(block=False)
 
-def plot_overall_quantities_over_time(sol, kvals):
+def plot_overall_quantities_over_time(sol, kvals, rescale_by_length=True):
     plt.figure()
     ax = plt.subplot()
 
+    # since this is overall quantity, rescale by space length
+    length_scalar = 1 if not rescale_by_length else np.abs(kvals["xL"] - kvals["x0"])
+
     #TODO - unsure if I should plot with or without the psi multiple
-    ax.plot(sol.t, [kvals["A_cyto"](kvals, sol.y[:kvals["Nx"], t_i]) for t_i in np.arange(0, len(sol.t))],
+    ax.plot(sol.t, [kvals["A_cyto"](kvals, sol.y[:kvals["Nx"], t_i])/length_scalar for t_i in np.arange(0, len(sol.t))],
             label="A_cyto", color="blue", linestyle="--")
-    ax.plot(sol.t, [kvals["P_cyto"](kvals, sol.y[kvals["Nx"]:, t_i]) for t_i in np.arange(0, len(sol.t))],
+    ax.plot(sol.t, [kvals["P_cyto"](kvals, sol.y[kvals["Nx"]:, t_i])/length_scalar for t_i in np.arange(0, len(sol.t))],
             label="P_cyto", color="orange", linestyle="--")
 
-    ax.plot(sol.t, [Ybar(kvals, sol.y[:kvals["Nx"], t_i]) for t_i in np.arange(0, len(sol.t))], label="A_bar", color="blue")
-    ax.plot(sol.t, [Ybar(kvals, sol.y[kvals["Nx"]:, t_i]) for t_i in np.arange(0, len(sol.t))], label="P_bar", color="orange")
+    ax.plot(sol.t, [Ybar(kvals, sol.y[:kvals["Nx"], t_i])/length_scalar for t_i in np.arange(0, len(sol.t))], label="A_bar", color="blue")
+    ax.plot(sol.t, [Ybar(kvals, sol.y[kvals["Nx"]:, t_i])/length_scalar for t_i in np.arange(0, len(sol.t))], label="P_bar", color="orange")
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 

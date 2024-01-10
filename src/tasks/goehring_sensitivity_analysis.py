@@ -123,7 +123,7 @@ def test_polarity_establishment():
             
             if task_set_i == 0 and len(task_set) == 1:
                 baseline_result = (res[1], res[2])
-                model_module.animate_plot(res[1], res[2], as_proportion=True)
+                model_module.animate_plot(res[1], res[2], rescale=True)
             
             sol_list.append(res[1])
             kvals_list.append(res[2])

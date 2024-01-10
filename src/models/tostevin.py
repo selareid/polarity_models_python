@@ -132,29 +132,33 @@ def polarity_measure(X, Am, Pm, Nx):
 
 
 # Plotting Functions
-def animate_plot(sol, kvals: dict, save_file = False, file_code: str = None):
+def animate_plot(sol, kvals: dict, save_file=False, file_code: str = None, rescale=False):
     if file_code is None:
         file_code = f'{time.time_ns()}'[5:]
 
+    # rescale so maximal protein quantity is 1
+    scalar = 1 if not rescale else np.max(sol.y[:-1, :])
+
     fig, ax = plt.subplots()
-    linePc, = ax.plot(kvals["X"], sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], 0], label="Pc", color="orange", linestyle="--")
-    lineAc, = ax.plot(kvals["X"], sol.y[kvals["Nx"]:2 * kvals["Nx"], 0], label="Ac", color="blue", linestyle="--")
-    linePm, = ax.plot(kvals["X"], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], 0], label="Pm", color="orange")
-    lineAm, = ax.plot(kvals["X"], sol.y[:kvals["Nx"], 0], label="Am", color="blue")
+    linePc, = ax.plot(kvals["X"], sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], 0]/scalar, label="Pc", color="orange", linestyle="--")
+    lineAc, = ax.plot(kvals["X"], sol.y[kvals["Nx"]:2 * kvals["Nx"], 0]/scalar, label="Ac", color="blue", linestyle="--")
+    linePm, = ax.plot(kvals["X"], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], 0]/scalar, label="Pm", color="orange")
+    lineAm, = ax.plot(kvals["X"], sol.y[:kvals["Nx"], 0]/scalar, label="Am", color="blue")
     time_label = ax.text(0.1, 1.05, f"t={sol.t[0]}", transform=ax.transAxes, ha="center")
 
-    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+    if rescale:
+        ax.text(1, 1.05, kvals["label"] + " (quantities scaled)", transform=ax.transAxes, ha="center")
+    else:
+        ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 
-    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:-1, :]) - 0.05, np.max(sol.y[:-1, :]) + 0.05],
-           xlabel="x",
-           ylabel="A/P")
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:-1, :])/scalar - 0.05, np.max(sol.y[:-1, :])/scalar + 0.05], xlabel="x", ylabel="A/P")
     ax.legend()
 
     def animate(t_i):
-        lineAm.set_ydata(sol.y[:kvals["Nx"], t_i])
-        lineAc.set_ydata(sol.y[kvals["Nx"]:2 * kvals["Nx"], t_i])
-        linePm.set_ydata(sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], t_i])
-        linePc.set_ydata(sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], t_i])
+        lineAm.set_ydata(sol.y[:kvals["Nx"], t_i] / scalar)  # Am
+        lineAc.set_ydata(sol.y[kvals["Nx"]:2 * kvals["Nx"], t_i] / scalar)  # Ac
+        linePm.set_ydata(sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], t_i] / scalar)  # Pm
+        linePc.set_ydata(sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], t_i] / scalar)  # Pc
 
         time_label.set_text(f"t={sol.t[t_i]:.2f}")
         return lineAm, lineAc, linePm, linePc, time_label
@@ -179,20 +183,23 @@ def plot_lt(sol, kvals):
     plt.show(block=False)
 
 
-def plot_final_timestep(sol, kvals):
+def plot_final_timestep(sol, kvals, rescale=False):
     plt.figure()
     ax = plt.subplot()
 
-    ax.plot(kvals["X"], sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], -1], label="Pc", color="orange", linestyle="--")
-    ax.plot(kvals["X"], sol.y[kvals["Nx"]:2 * kvals["Nx"], -1], label="Ac", color="blue", linestyle="--")
-    ax.plot(kvals["X"], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], -1], label="Pm", color="orange")
-    ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1], label="Am", color="blue")
+    # scaling takes into account all time
+    scalar = 1 if not rescale else np.max(sol.y[:-1, :])
 
-    ax.text(0.1, 1.05, f"t={sol.t[-1]}", transform=ax.transAxes, ha="center")
+    ax.plot(kvals["X"], sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], -1]/scalar, label="Pc", color="orange", linestyle="--")
+    ax.plot(kvals["X"], sol.y[kvals["Nx"]:2 * kvals["Nx"], -1]/scalar, label="Ac", color="blue", linestyle="--")
+    ax.plot(kvals["X"], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], -1]/scalar, label="Pm", color="orange")
+    ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1]/scalar, label="Am", color="blue")
+
+    ax.text(0.1, 1.05, f"t={sol.t[-1]}", transform=ax.transAxes, ha="center")  # time label
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 
-    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:-1, -1]) - 0.05, np.max(sol.y[:-1, -1]) + 0.05],
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:-1, -1])/scalar - 0.05, np.max(sol.y[:-1, -1])/scalar + 0.05],
            xlabel="x",
            ylabel="A/P")
     ax.legend()
@@ -200,18 +207,19 @@ def plot_final_timestep(sol, kvals):
     plt.show(block=False)
 
 
-def plot_overall_quantities_over_time(sol, kvals, normalised=True):
+def plot_overall_quantities_over_time(sol, kvals, rescale_by_length=True):
     plt.figure()
     ax = plt.subplot()
 
-    normalise_term = 1 if not normalised else np.abs(kvals["xL"]-kvals["x0"])
+    # since this is overall quantity, rescale by space length
+    length_scalar = 1 if not rescale_by_length else np.abs(kvals["xL"] - kvals["x0"])
 
-    ax.plot(sol.t, [integrate.trapezoid(sol.y[:kvals["Nx"], t_i], dx=kvals["deltax"])/normalise_term for t_i in np.arange(0, len(sol.t))], label="Am", color="blue")
-    ax.plot(sol.t, [integrate.trapezoid(sol.y[kvals["Nx"]:2 * kvals["Nx"], t_i], dx=kvals["deltax"])/normalise_term for t_i in np.arange(0, len(sol.t))], label="Ac", color="blue", linestyle="--")
-    ax.plot(sol.t, [integrate.trapezoid(sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], t_i], dx=kvals["deltax"])/normalise_term for t_i in np.arange(0, len(sol.t))], label="Pm", color="orange")
-    ax.plot(sol.t, [integrate.trapezoid(sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], t_i], dx=kvals["deltax"])/normalise_term for t_i in np.arange(0, len(sol.t))], label="Pc", color="orange", linestyle="--")
+    ax.plot(sol.t, [integrate.trapezoid(sol.y[:kvals["Nx"], t_i], dx=kvals["deltax"])/length_scalar for t_i in np.arange(0, len(sol.t))], label="Am", color="blue")
+    ax.plot(sol.t, [integrate.trapezoid(sol.y[kvals["Nx"]:2 * kvals["Nx"], t_i], dx=kvals["deltax"])/length_scalar for t_i in np.arange(0, len(sol.t))], label="Ac", color="blue", linestyle="--")
+    ax.plot(sol.t, [integrate.trapezoid(sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], t_i], dx=kvals["deltax"])/length_scalar for t_i in np.arange(0, len(sol.t))], label="Pm", color="orange")
+    ax.plot(sol.t, [integrate.trapezoid(sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], t_i], dx=kvals["deltax"])/length_scalar for t_i in np.arange(0, len(sol.t))], label="Pc", color="orange", linestyle="--")
 
-    ax.plot(sol.t, sol.y[-1, :]/normalise_term, label="l(t)")
+    ax.plot(sol.t, sol.y[-1, :]/length_scalar, label="l(t)")
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 
