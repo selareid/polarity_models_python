@@ -4,6 +4,8 @@ from typing import Callable
 import numpy as np
 from matplotlib import pyplot as plt, animation
 from scipy import integrate
+from src.models import polarity_measure, polarity_orientation, orientation_marker
+
 
 def default_v_func(kvals, x,t):
     return -x*(x-190)*(x-35) / (700000*(np.maximum(1,np.abs((t-120)/80)))**2)
@@ -131,15 +133,6 @@ def run_model(args: dict = {}):
                               t_eval=kvals["t_eval"], args=(kvals,))
 
     return sol, kvals
-
-# Analysis Metric
-def polarity_measure(X, A, P, Nx):
-    a_first = integrate.simpson(A[:Nx//2], X[:Nx//2])
-    a_second = integrate.simpson(A[Nx//2:], X[Nx//2:])
-    p_first = integrate.simpson(P[:Nx//2], X[:Nx//2])
-    p_second = integrate.simpson(P[Nx//2:], X[Nx//2:])
-
-    return 0 if ((a_first + a_second)*(p_first + p_second)) == 0 else np.abs(a_first - a_second) * np.abs(p_first - p_second) / ((a_first + a_second)*(p_first + p_second))
 
 
 # Plotting
@@ -290,7 +283,7 @@ def plot_failure(U, t, kvals):
 # variation_sets is a list [([sol,sol,sol], [kvals, kvals, kvals]), ... ]
 # assumes kvals has key_varied property
 # can handle sol with value "FAILURE"
-def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axis_labels: list[str] | None = None):
+def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axis_labels: list[str] | None = None, show_orientation=True):
     plt.figure()
     ax = plt.subplot()
 
@@ -314,6 +307,7 @@ def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axi
             if not sol == "FAILURE":
                 polarity_m = polarity_measure(kvals["X"], sol.y[:kvals["Nx"], -1], sol.y[kvals["Nx"]:, -1], kvals["Nx"])
                 xtick = x_axis_labels[j] if x_axis_labels is not None else j
+                marker = 'o' if not show_orientation else orientation_marker(polarity_orientation(kvals["X"], sol.y[:kvals["Nx"], -1], sol.y[kvals["Nx"]:, -1], kvals["Nx"]))
 
                 # jitter the near-0 values so they are visible
                 if polarity_m<0.02:
@@ -321,7 +315,7 @@ def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axi
 
                 polarity_m_list.append(polarity_m)
                 xticks.append(xtick)
-                ax.scatter(xtick, polarity_m, color=color)
+                ax.scatter(xtick, polarity_m, color=color, marker=marker, s=100)
 
         ax.plot(xticks, polarity_m_list, "--", label=kvals_list[1]["key_varied"], color=color)
 
