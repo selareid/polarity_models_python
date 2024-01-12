@@ -4,7 +4,7 @@ from typing import Callable
 import numpy as np
 from matplotlib import pyplot as plt, animation
 from scipy import integrate
-from src.models import polarity_measure, polarity_orientation, orientation_marker
+from .metric_functions import polarity_measure, polarity_orientation, orientation_marker
 
 
 def default_v_func(kvals, x,t):

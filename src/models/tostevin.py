@@ -4,7 +4,7 @@ import numpy as np
 from scipy import integrate
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from src.models import polarity_measure, polarity_orientation, orientation_marker
+from .metric_functions import polarity_measure, polarity_orientation, orientation_marker
 
 def default_a_func(kvals, lt, x):
     if 0 <= x <= lt:
