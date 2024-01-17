@@ -7,8 +7,15 @@ from scipy import integrate
 from .metric_functions import polarity_measure, polarity_orientation, orientation_marker
 
 
-def default_v_func(kvals, x,t):
-    return -x*(x-190)*(x-35) / (700000*(np.maximum(1,np.abs((t-120)/80)))**2)
+def default_v_func(kvals, x, t):
+    v_time = 600
+    time_factor = 1 / np.maximum(1, t / 10 - v_time / 10)
+
+    center = kvals["xL"] / 4
+    sd = np.minimum(center / 4, (kvals["xL"] - center) / 4)
+    peak = 0.1
+
+    return time_factor * peak * np.exp(-(x - center) ** 2 / (2 * sd ** 2))
 
 
 Ybar = lambda kvals, Y: 2 * integrate.simpson(Y, kvals["X"]) / kvals["L"]  # handles both A-bar and P-bar

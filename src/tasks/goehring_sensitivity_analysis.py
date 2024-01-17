@@ -7,17 +7,14 @@ model_module = model_to_module(MODELS.GOEHRING)
 
 
 def default_v_func(kvals, x, t):
-    P = 0.1
-    H = kvals["xL"]*0.5/2
+    v_time = 600
+    time_factor = 1 / np.maximum(1, t / 10 - v_time / 10)
 
-    rescale_factor = 1 / np.maximum(1, t/50-300/50)**2
+    center = kvals["xL"] / 4
+    sd = np.minimum(center / 4, (kvals["xL"] - center) / 4)
+    peak = 0.1
 
-    P = P * rescale_factor
-
-    if x <= H:
-        return x*P/H
-    else:  # x > H
-        return P-P*(x-H)/(67.3-H)
+    return time_factor * peak * np.exp(-(x - center) ** 2 / (2 * sd ** 2))
 
 
 def v_func_zero(kvals, x, t):
