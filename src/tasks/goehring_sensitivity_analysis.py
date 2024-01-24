@@ -1,3 +1,7 @@
+# https://stackoverflow.com/questions/17053671/how-do-you-stop-numpy-from-multithreading
+import os
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
 import numpy as np
 from matplotlib import pyplot as plt
 from src.tasks.variation_task_helper import generate_tasks, split_baseline_from_results, run_grouped_tasks
