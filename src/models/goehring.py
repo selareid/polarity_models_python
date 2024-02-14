@@ -85,7 +85,7 @@ def odefunc(t, U, kvals):
     # Failure so odefunc doesn't run forever trying to fix numerical issues
     if min(U) < -100 or max(U) > 100:
         print(f"FAILURE with goehring labelled {kvals['label']} at simulation time {t:.4f}")
-        plot_failure(U, t, kvals)
+        # plot_failure(U, t, kvals)
         raise AssertionError
 
     A = U[:kvals["Nx"]]
@@ -120,7 +120,9 @@ def odefunc(t, U, kvals):
     return np.ravel([dudt_A, dudt_P])
 
 
-def run_model(args: dict = {}):
+def run_model(args=None):
+    if args is None:
+        args = {}
     params = {**DEFAULT_PARAMETERS, **args}
 
     # calculate other widely used values
@@ -134,7 +136,7 @@ def run_model(args: dict = {}):
     kvals["t_eval"] = kvals["t_eval"] if "t_eval" in kvals else np.linspace(kvals["t0"], kvals["tL"], int(kvals["points_per_second"] * np.abs(kvals["tL"] - kvals["t0"])))
 
     # default initial condition if none passed
-    kvals["initial_condition"] = kvals["initial_condition"] if "initial_condition" in kvals else np.ravel([[0.5, 0.0] for x_i in np.arange(0, kvals["Nx"])], order='F')
+    kvals["initial_condition"] = kvals["initial_condition"] if "initial_condition" in kvals else np.ravel([[1.51, 0.0] for x_i in np.arange(0, kvals["Nx"])], order='F')
 
     sol = integrate.solve_ivp(odefunc, [kvals["t0"], kvals["tL"]], kvals["initial_condition"], method="BDF",
                               t_eval=kvals["t_eval"], args=(kvals,))
@@ -190,7 +192,9 @@ def plot_final_timestep(sol, kvals, rescale=False):
 
     ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1]/scalar, label="anterior", color="blue") # A
     ax.plot(kvals["X"], sol.y[kvals["Nx"]:, -1]/scalar, label="posterior", color="orange") # P
-    ax.text(0.1, 1.05, f"t={sol.t[-1]}", transform=ax.transAxes, ha="center") # time value
+
+    p_m = polarity_measure(kvals["X"], sol.y[:kvals["Nx"], -1], sol.y[kvals["Nx"]:, -1], kvals["Nx"])
+    ax.text(0.1, 1.05, f"t={sol.t[-1]},p={p_m:.4f}", transform=ax.transAxes, ha="center") # time value
     ax.plot(kvals["X"], [kvals["v_func"](kvals, x, sol.t[-1]) for x in kvals["X"]], label="v", linestyle="--", color="black") # v_func
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
@@ -287,10 +291,39 @@ def plot_failure(U, t, kvals):
 
     plt.show(block=True)
 
+
+# assume lists are [base, ...others]
+def plot_metric_comparisons(sol_list, kvals_list, label=DEFAULT_PARAMETERS["label"]):
+    assert len(sol_list) == len(kvals_list)
+
+    # kvals = kvals_list[0]
+    # polarity measure metric (final timestep)
+    # plt.figure()
+    # ax1 = plt.subplot()
+
+    # TODO other metric
+    # plt.figure()
+    # ax2 = plt.subplot()
+
+    plt.figure()
+
+    for i in np.arange(0, len(sol_list)):
+        sol = sol_list[i]
+        kvals = kvals_list[i]
+
+        polarity_m = polarity_measure(kvals["X"], sol.y[:kvals["Nx"], -1], sol.y[kvals["Nx"]:, -1], kvals["Nx"])
+
+        plt.plot(0, polarity_m, marker="o", linestyle="None", label=kvals["label"])
+
+    plt.legend()
+    # plt.title.set_text(label)
+    plt.show(block=False)
+
+
 # variation_sets is a list [([sol,sol,sol], [kvals, kvals, kvals]), ... ]
 # assumes kvals has key_varied property
 # can handle sol with value "FAILURE"
-def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axis_labels: list[str] | None = None, show_orientation=True):
+def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axis_labels: list[str] | None = None, show_orientation=True, xlim=None):
     plt.figure()
     ax = plt.subplot()
 
@@ -305,7 +338,10 @@ def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axi
 
         polarity_m_list = []
         xticks = []
-        color = (np.minimum(1, 0.3 + (i % 6)/7), 0.75 - 0.50*i/len(variation_sets),0.5 + 0.50*i/len(variation_sets))
+        if len(variation_sets) > 7:
+            color = (np.minimum(1, 0.3 + (i % 6)/7), 0.75 - 0.50*i/len(variation_sets),0.5 + 0.50*i/len(variation_sets))
+        else:
+            color = (np.minimum(1, 0.3 + (i % 3)/4), 0.75 - 0.50*i/len(variation_sets),0.5 + 0.50*i/len(variation_sets))
 
         for j in np.arange(0, len(sol_list)):
             sol = sol_list[j]
@@ -327,7 +363,7 @@ def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axi
         ax.plot(xticks, polarity_m_list, "--", label=kvals_list[1]["key_varied"], color=color)
 
     ax.legend()
-    ax.set(xlabel="percentage of baseline value", ylabel="polarity", ylim=[-0.1,1.1])
+    ax.set(xlabel="percentage of baseline value", ylabel="polarity", ylim=[-0.1,1.1], xlim=xlim)
     ax.title.set_text(label)
     plt.show(block=False)
 

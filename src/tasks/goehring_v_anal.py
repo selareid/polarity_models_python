@@ -45,9 +45,11 @@ def get_default_parameters(Nx, tL, v_func=new_v_func):
 
 def run_variations(Nx, tL, initial_condition):
     # [[time] space]
-    X = np.linspace(0, 67.3, 10 + 2)  # x0 to xL
+    X = np.linspace(0, 67.3, 20 + 2)  # x0 to xL
+    # X = np.linspace(0, 67.3, 10 + 2)  # x0 to xL
     X = X[1:-1]  # exclude start and end of space (want v=0 at endpoints)
-    T = np.linspace(30, 2000, 20)
+    T = np.linspace(30, 3000, 20)
+    # T = np.linspace(30, 2000, 20)
 
     tasks_list = []
 
@@ -90,6 +92,8 @@ def run_variations(Nx, tL, initial_condition):
 
 
 def run_interesting(Nx, tL, initial_condition, v_x, v_t):
+    print(f"Running Interesting Case x:{v_x},t:{v_t}")
+
     _, sol, kvals = model_task_handler.run_tasks([(MODELS.GOEHRING, {**get_default_parameters(Nx, tL),
                                                  "initial_condition": initial_condition,
                                                  "label": format(f"x={v_x},t={v_t}"),
@@ -100,7 +104,7 @@ def run_interesting(Nx, tL, initial_condition, v_x, v_t):
 
 
 if __name__ == '__main__':
-    Nx = 45
+    Nx = 100
     tL = 3000
 
     initial_condition = [2.828] * Nx + [0.025] * Nx  # the values we get when running baseline with v=0
