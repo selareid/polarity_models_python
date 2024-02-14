@@ -139,7 +139,7 @@ def test_polarity_establishment(Nx=50, tL=3000, filter=None, extra_plot=None):
 #     # variation_multipliers = [0.7, 0.8, 0.9, 0.95, 1.05, 1.1, 1.2, 1.3]  # narrow
 #     variation_multipliers = [0.5, 0.6, 0.7, 0.9, 1.2, 1.3, 1.5, 1.75, 2]  # middle
 #     index_for_100x = 3
-#     xticks = [format(f"{x*100:.2f}%") for x in variation_multipliers]
+#     xticks = [format(f"{x*100:.4f}%") for x in variation_multipliers]
 #     xticks.insert(index_for_100x, "100%")
 #
 #     tasks = generate_tasks(MODELS.TOSTEVIN, variation_multipliers, get_default_parameters(Nx=Nx, tL=tL), {"label": ".", "initial_condition": initial_condition, "a_func": a_func_zero})
@@ -166,4 +166,6 @@ if __name__ == '__main__':
     # test_polarity_establishment(Nx=100, filter="generic")
     # test_polarity_establishment(Nx=100, filter=None)
     # test_polarity_maintenance(Nx=24)
+
+    print("Finished!")
     plt.show()

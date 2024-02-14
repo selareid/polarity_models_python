@@ -62,7 +62,7 @@ def odefunc(t, U, kvals):
     # Failure so odefunc doesn't run forever trying to fix numerical issues
     if min(U) < -100 or max(U) > 100:
         print(f"FAILURE with tostevin labelled {kvals['label']} at simulation time {t:.4f}")
-        plot_failure(U, t, kvals)
+        # plot_failure(U, t, kvals)
         raise AssertionError
 
     Am = U[:kvals["Nx"]]
@@ -98,7 +98,10 @@ def odefunc(t, U, kvals):
     return np.append(np.ravel([dudt_Am, dudt_Ac, dudt_Pm, dudt_Pc]), dudt_L)
 
 
-def run_model(args: dict = {}):
+def run_model(args=None):
+    if args is None:
+        args = {}
+
     params = {**DEFAULT_PARAMETERS, **args}
 
     # calculate other widely used values
@@ -134,7 +137,9 @@ def animate_plot(sol, kvals: dict, save_file=False, file_code: str = None, resca
     lineAc, = ax.plot(kvals["X"], sol.y[kvals["Nx"]:2 * kvals["Nx"], 0]/scalar, label="Ac", color="blue", linestyle="--")
     linePm, = ax.plot(kvals["X"], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], 0]/scalar, label="Pm", color="orange")
     lineAm, = ax.plot(kvals["X"], sol.y[:kvals["Nx"], 0]/scalar, label="Am", color="blue")
-    time_label = ax.text(0.1, 1.05, f"t={sol.t[0]}", transform=ax.transAxes, ha="center")
+
+    p_m = polarity_measure(kvals["X"], sol.y[:kvals["Nx"], 0], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], 0], kvals["Nx"])
+    time_label = ax.text(0.1, 1.05, f"t={sol.t[0]} p={p_m:.4f}", transform=ax.transAxes, ha="center")
 
     if rescale:
         ax.text(1, 1.05, kvals["label"] + " (quantities scaled)", transform=ax.transAxes, ha="center")
@@ -150,7 +155,8 @@ def animate_plot(sol, kvals: dict, save_file=False, file_code: str = None, resca
         linePm.set_ydata(sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], t_i] / scalar)  # Pm
         linePc.set_ydata(sol.y[3 * kvals["Nx"]:4 * kvals["Nx"], t_i] / scalar)  # Pc
 
-        time_label.set_text(f"t={sol.t[t_i]:.2f}")
+        p_m = polarity_measure(kvals["X"], sol.y[:kvals["Nx"], t_i], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], t_i], kvals["Nx"])
+        time_label.set_text(f"t={sol.t[t_i]:.2f} p={p_m:.4f}")
         return lineAm, lineAc, linePm, linePc, time_label
 
     ani = animation.FuncAnimation(fig, animate, interval=5000/len(sol.t), blit=True, frames=len(sol.t))
@@ -185,7 +191,8 @@ def plot_final_timestep(sol, kvals, rescale=False):
     ax.plot(kvals["X"], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], -1]/scalar, label="Pm", color="orange")
     ax.plot(kvals["X"], sol.y[:kvals["Nx"], -1]/scalar, label="Am", color="blue")
 
-    ax.text(0.1, 1.05, f"t={sol.t[-1]}", transform=ax.transAxes, ha="center")  # time label
+    p_m = polarity_measure(kvals["X"], sol.y[:kvals["Nx"], -1], sol.y[2 * kvals["Nx"]:3 * kvals["Nx"], -1], kvals["Nx"])
+    ax.text(0.1, 1.05, f"t={sol.t[-1]},p={p_m:.4f}", transform=ax.transAxes, ha="center")  # time label
 
     ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
 
@@ -285,7 +292,7 @@ def plot_failure(U, t, kvals):
 
 # variation_sets is a list [([sol,sol,sol], [kvals, kvals, kvals]), ... ]
 # assumes kvals has key_varied property
-def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axis_labels: list[str] | None = None, show_orientation=True):
+def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axis_labels: list[str] | None = None, show_orientation=True, xlim=None):
     plt.figure()
     ax = plt.subplot()
 
@@ -300,7 +307,10 @@ def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axi
 
         polarity_m_list = []
         xticks = []
-        color = (np.minimum(1, 0.3 + (i % 6) / 7), 0.75 - 0.50 * i / len(variation_sets), 0.5 + 0.50 * i / len(variation_sets))
+        if len(variation_sets) > 7:
+            color = (np.minimum(1, 0.3 + (i % 6)/7), 0.75 - 0.50*i/len(variation_sets),0.5 + 0.50*i/len(variation_sets))
+        else:
+            color = (np.minimum(1, 0.3 + (i % 3)/4), 0.75 - 0.50*i/len(variation_sets),0.5 + 0.50*i/len(variation_sets))
 
         for j in np.arange(0, len(sol_list)):
             sol = sol_list[j]
@@ -322,6 +332,6 @@ def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axi
         ax.plot(xticks, polarity_m_list, "--", label=kvals_list[1]["key_varied"], color=color)
 
     ax.legend()
-    ax.set(xlabel="percentage of baseline value", ylabel="polarity", ylim=[-0.1,1.1])
+    ax.set(xlabel="percentage of baseline value", ylabel="polarity", ylim=[-0.1,1.1], xlim=xlim)
     ax.title.set_text(label)
     plt.show(block=False)
