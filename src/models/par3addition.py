@@ -70,7 +70,7 @@ DEFAULT_PARAMETERS = {
     "rho_J": 1.56,
     "rho_P": 1.0,
 
-    "konJ": 8.58 * 10**(-3),  # TODO
+    "konJ": 8.58 * 10**(-3),
     "konA": 0,
     "konP": 4.74 * 10**(-2),
 
@@ -79,6 +79,10 @@ DEFAULT_PARAMETERS = {
     "koffP": 7.3 * 10**(-3),
 
     "v_func": default_v_func,
+
+    # these two added later
+    "kMP": 0,
+    "kAP": 0,
 }
 
 
@@ -101,8 +105,10 @@ def disc_spatial_derivative(kvals: dict, func: Callable[[int], float], x_i):
 R_J = lambda kvals, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r: -kvals["k1"]*A_cyto_r*J[x_i] + kvals["k2"]*M[x_i] \
                                                     + kvals["konJ"]*J_cyto_r - kvals["koffJ"]*J[x_i] \
                                                     - kvals["kJP"]*P[x_i]**kvals["alpha"]*J[x_i]
-R_M = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals["k1"]*A_cyto_r*J[x_i] - kvals["k2"]*M[x_i]
-R_A = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals["k2"]*M[x_i] + kvals["konA"]*A_cyto_r - kvals["koffA"]*A[x_i]
+R_M = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals["k1"]*A_cyto_r*J[x_i] - kvals["k2"]*M[x_i] \
+                                                    - kvals["kMP"]*P[x_i]*M[x_i]  # added antagonism
+R_A = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals["k2"]*M[x_i] + kvals["konA"]*A_cyto_r - kvals["koffA"]*A[x_i] \
+                                                    - kvals["kAP"]*P[x_i]*A[x_i]  # added antagonism
 R_P = lambda kvals, J, M, A, P, t, x_i, P_cyto_r: kvals["konP"]*P_cyto_r - kvals["koffP"]*P[x_i] \
                                                     - kvals["kPA"]*(A[x_i]+M[x_i])**kvals["beta"]*P[x_i]
 
@@ -209,11 +215,11 @@ def animate_plot(sol, kvals: dict, save_file=False, file_code: str = None, resca
     line2, = ax.plot(kvals["X"], sol.y[Nx:2*Nx, 0]/scalar, label="par3-PKC", color="purple")
     line3, = ax.plot(kvals["X"], sol.y[2*Nx:3*Nx, 0]/scalar, label="cdc42-PKC", color="blue")
     line4, = ax.plot(kvals["X"], sol.y[3*Nx:, 0]/scalar, label="posterior", color="orange")
-    p_m = 0 #polarity_measure(kvals["X"], sol.y[:kvals["Nx"], 0], sol.y[kvals["Nx"]:, 0], kvals["Nx"])
+    p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, 0], sol.y[3*Nx:, 0], Nx)
     time_label = ax.text(0.1, 1.05, f"t={sol.t[0]} p={p_m:.4f}", transform=ax.transAxes, ha="center")
     linev, = ax.plot(kvals["X"], [v_rescale_for_visibility*kvals["v_func"](kvals, x, 0) for x in kvals["X"]], label="v", linestyle="--", color="black")
 
-    ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+    ax.text(0.7, 1.05, kvals["label"] + ";Nx:" + str(Nx), transform=ax.transAxes, ha="center")
 
     ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y)/scalar-0.05,np.max(sol.y)/scalar+0.05], xlabel="x", ylabel="par3,A/P")
     ax.legend()
@@ -224,11 +230,11 @@ def animate_plot(sol, kvals: dict, save_file=False, file_code: str = None, resca
         line2.set_ydata(sol.y[Nx:2*Nx, t_i]/scalar)
         line3.set_ydata(sol.y[2*Nx:3*Nx, t_i]/scalar)
         line4.set_ydata(sol.y[3*Nx:, t_i]/scalar)
-        p_m = 0 #polarity_measure(kvals["X"], sol.y[:kvals["Nx"], t_i], sol.y[kvals["Nx"]:, t_i], kvals["Nx"])
+        p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, t_i], sol.y[3*Nx:, t_i], Nx)
         time_label.set_text(f"t={sol.t[t_i]:.2f} p={p_m:.4f}")
         return (line1, line2, line3, linev, time_label)
 
-    ani = animation.FuncAnimation(fig, animate, interval=5000/len(sol.t), blit=True, frames=len(sol.t))
+    ani = animation.FuncAnimation(fig, animate, interval=10000/len(sol.t), blit=True, frames=len(sol.t))
 
     if save_file:
         file_name = f"{file_code}_spatialPar.mp4"
@@ -238,6 +244,32 @@ def animate_plot(sol, kvals: dict, save_file=False, file_code: str = None, resca
     plt.show(block=False)
 
 
+def plot_final_timestep(sol, kvals, rescale=False):
+    plt.figure()
+    ax = plt.subplot()
+
+    Nx = kvals["Nx"]
+    scalar = 1 if not rescale else np.max(sol.y)
+
+    ax.plot(kvals["X"], sol.y[:Nx, -1] / scalar, label="par3", color="green")
+    ax.plot(kvals["X"], sol.y[Nx:2 * Nx, -1] / scalar, label="par3-PKC", color="purple")
+    ax.plot(kvals["X"], sol.y[2 * Nx:3 * Nx, -1] / scalar, label="cdc42-PKC", color="blue")
+    ax.plot(kvals["X"], sol.y[3 * Nx:, -1] / scalar, label="posterior", color="orange")
+
+    p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, -1], sol.y[3*Nx:, -1], Nx)
+    ax.text(0.1, 1.05, f"t={sol.t[-1]},p={p_m:.4f}", transform=ax.transAxes, ha="center")  # time value
+    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, sol.t[-1]) for x in kvals["X"]], label="v", linestyle="--", color="black")  # v_func
+
+    ax.text(0.7, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    # ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:, -1])/scalar-0.05, np.max(sol.y[:, -1])/scalar+0.05], xlabel="x", ylabel="A/P")
+    ax.legend()
+
+    plt.show(block=False)
+
+
+# polarity based on the cdc42 quantity for Anterior
+# untested code
 def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axis_labels: list[str] | None = None, show_orientation=True, xlim=None):
     plt.figure()
     ax = plt.subplot()
@@ -263,7 +295,7 @@ def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axi
             kvals = kvals_list[j]
 
             if not sol == "FAILURE":
-                p_measure, _p_orientation, p_marker = polarity_get_all(kvals["X"], sol.y[kvals["Nx"]:2*kvals["Nx"], -1], sol.y[2*kvals["Nx"]:, -1], kvals["Nx"])
+                p_measure, _p_orientation, p_marker = polarity_get_all(kvals["X"], sol.y[2*kvals["Nx"]:3*kvals["Nx"], -1], sol.y[3*kvals["Nx"]:, -1], kvals["Nx"])
 
                 xtick = x_axis_labels[j] if x_axis_labels is not None else j
                 marker = 'o' if not show_orientation else p_marker
@@ -277,9 +309,9 @@ def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axi
                 ax.scatter(xtick, p_measure, color=color, marker=marker, s=100)
 
         ax.plot(xticks, polarity_m_list, "--", label=kvals_list[1]["key_varied"], color=color)
-        # TODO - check what label above is using and if it is what we want
 
     ax.legend()
     ax.set(xlabel="percentage of baseline value", ylabel="polarity", ylim=[-0.1,1.1], xlim=xlim)
     ax.title.set_text(label)
     plt.show(block=False)
+
