@@ -211,7 +211,6 @@ if __name__ == '__main__':
                         "rho_J": 1.125,
                         "koffJ": 0.0001,
 
-                        "rho_A": 1.323,
                         # "initial_condition": [1]*(Nx*3)+[0]*Nx,
                         # "v_func": v_func_zero
                         "kAP": 0.19,  # 0,
