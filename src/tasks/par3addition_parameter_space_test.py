@@ -217,7 +217,7 @@ if __name__ == '__main__':
                         "kAP": 0.19,  # 0,
                         }
 
-    key_params: list[str] = ["rho_A", "kAP"]  # what parameters to consider
+    key_params: list[str] = ["rho_A", "kAP"]  # what parameters to consider (can be more than two)
 
     # range and number of variations
     variation_max_multiplier = 1.25
