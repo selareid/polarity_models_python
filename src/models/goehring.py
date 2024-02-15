@@ -39,7 +39,7 @@ DEFAULT_PARAMETERS = {
     "D_A": 0.28,
     "D_P": 0.15,
     "k_onA": 8.58 * 10 ** (-3),
-    "k_onP": 4.74 * 10 ** (-2),  # (TODO) 10^-3 or 10^-2 ?? (is 2 in the paper)
+    "k_onP": 4.74 * 10 ** (-2),
     "k_offA": 5.4 * 10 ** (-3),
     "k_offP": 7.3 * 10 ** (-3),
     "k_AP": 0.190,
@@ -201,6 +201,44 @@ def plot_final_timestep(sol, kvals, rescale=False):
 
     ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:, -1])/scalar-0.05, np.max(sol.y[:, -1])/scalar+0.05], xlabel="x", ylabel="A/P")
     ax.legend()
+
+    plt.show(block=False)
+
+
+# this one is different from others cause I wrote it for my poster plots and I didn't generify it
+def plot_timestep(sol, kvals, t_i=0, rescale=False, upperYTick=None, show_legend=True, left_ticks=True, ax=None):
+    if ax is None:
+        plt.figure()
+        ax = plt.subplot()
+
+    COLOR_APAR = (0, 150/255, 150/255)
+    COLOR_PPAR = (230/255, 0, 0)
+    LINE_WIDTH = 5
+
+    scalar = 1 if not rescale else np.max(sol.y[:, t_i])
+
+    ax.plot(kvals["X"], sol.y[:kvals["Nx"], t_i]/scalar, label="Anterior", color=COLOR_APAR, linewidth=LINE_WIDTH) # A
+    ax.plot(kvals["X"], sol.y[kvals["Nx"]:, t_i]/scalar, label="Posterior", color=COLOR_PPAR, linewidth=LINE_WIDTH) # P
+
+    # p_m = polarity_measure(kvals["X"], sol.y[:kvals["Nx"], t_i], sol.y[kvals["Nx"]:, t_i], kvals["Nx"])
+    # ax.text(0.1, 1.05, f"t={sol.t[t_i]},p={p_m:.4f}", transform=ax.transAxes, ha="center") # time value
+
+    ax.text(0.1, 1.05, f"t={sol.t[t_i]:.0f}", transform=ax.transAxes, ha="center") # time value
+
+
+    v_scalar = upperYTick/0.1 if upperYTick is not None else 1/0.1 if rescale else 1
+    ax.plot(kvals["X"], [v_scalar*kvals["v_func"](kvals, x, sol.t[t_i]) for x in kvals["X"]], label="v", linestyle="--", color="black", linewidth=LINE_WIDTH) # v_func
+
+    # ax.text(1, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:, t_i])/scalar-0.05, np.max(sol.y[:, t_i])/scalar+0.05])#, xlabel="x", ylabel="A/P")
+    
+    if show_legend: ax.legend()
+
+    plt.xticks([0,kvals["xL"]//2,kvals["xL"]],['0','','L'])
+
+    if upperYTick is not None:
+        plt.yticks([0, upperYTick], [0,1] if left_ticks else ['',''])
 
     plt.show(block=False)
 
