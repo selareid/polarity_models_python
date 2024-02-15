@@ -41,3 +41,22 @@ def polarity_get_all(X, Am, Pm, Nx):
 
     return measure, orientation, orientation_marker(orientation)
 
+
+# polarity metric but just using the posterior quantity
+# def posterior_polarity_get_all(X, Pm, Nx):
+#     assert Nx > 3  # no meaningful information when step-size too low
+#
+#     p_left = integrate.simpson(Pm[:Nx//2], X[:Nx//2])
+#     p_right = integrate.simpson(Pm[Nx//2:], X[Nx//2:])
+#
+#     measure = 0 if p_left + p_right == 0 else np.abs(p_left - p_right) / (p_left + p_right)
+#
+#     # Orientation
+#     if p_right > p_left:  # P is on the right
+#         orientation = 1
+#     elif p_right < p_left:  # P is on the left
+#         orientation = 2
+#     else:  # undetermined
+#         orientation = 0
+#
+#     return measure, orientation, orientation_marker(orientation)
