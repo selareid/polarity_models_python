@@ -315,3 +315,55 @@ def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axi
     ax.title.set_text(label)
     plt.show(block=False)
 
+
+# plot combined A,M,J (aPars)
+
+def animate_plot_apar_combo(sol, kvals: dict, save_file=False, file_code: str = None, rescale=False):
+    if file_code is None:
+        file_code = f'{time.time_ns()}'[5:]
+
+    # rescale so maximal protein quantity is 1
+    # TODO
+    # scalar = 1 if not rescale else np.max(sol.y)
+    # v_rescale_for_visibility = np.max(sol.y)/scalar * 10  # rescale so 0.1 is equal to max protein quantity in the plotting of v
+    scalar = 1
+    v_rescale_for_visibility = 1
+
+    Nx = kvals["Nx"]
+    # J = U[:Nx]
+    # M = U[Nx:2 * Nx]
+    # A = U[2 * Nx:3 * Nx]
+    # P = U[3 * Nx:]
+
+    combined_apar = (sol.y[:Nx, 0] + sol.y[Nx:2*Nx, 0] + sol.y[2*Nx:3*Nx, 0])
+
+    fig, ax = plt.subplots()
+    line1, = ax.plot(kvals["X"], combined_apar/scalar, label="anterior", color="green")
+    line2, = ax.plot(kvals["X"], sol.y[3*Nx:, 0]/scalar, label="posterior", color="orange")
+    p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, 0], sol.y[3*Nx:, 0], Nx)  # polarisation metric
+    time_label = ax.text(0.1, 1.05, f"t={sol.t[0]} p={p_m:.4f}", transform=ax.transAxes, ha="center")
+    linev, = ax.plot(kvals["X"], [v_rescale_for_visibility*kvals["v_func"](kvals, x, 0) for x in kvals["X"]], label="v", linestyle="--", color="black")
+
+    ax.text(0.7, 1.05, kvals["label"] + ";Nx:" + str(Nx), transform=ax.transAxes, ha="center")
+
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y)/scalar-0.05,np.max(sol.y)/scalar+0.05], xlabel="x", ylabel="par3,A/P")
+    ax.legend()
+
+    def animate(t_i):
+        combined_apar = sol.y[:Nx, t_i] + sol.y[Nx:2*Nx, t_i] + sol.y[2*Nx:3*Nx, t_i]
+
+        linev.set_ydata([v_rescale_for_visibility*kvals["v_func"](kvals, x, sol.t[t_i]) for x in kvals["X"]])
+        line1.set_ydata(combined_apar/scalar)
+        line2.set_ydata(sol.y[3*Nx:, t_i]/scalar)
+        p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, t_i], sol.y[3*Nx:, t_i], Nx)
+        time_label.set_text(f"t={sol.t[t_i]:.2f} p={p_m:.4f}")
+        return (line1, line2, linev, time_label)
+
+    ani = animation.FuncAnimation(fig, animate, interval=10000/len(sol.t), blit=True, frames=len(sol.t))
+
+    if save_file:
+        file_name = f"{file_code}_spatialPar.mp4"
+        print(f"Saving animation to {file_name}")
+        ani.save(file_name)
+
+    plt.show(block=False)
