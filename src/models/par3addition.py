@@ -367,3 +367,29 @@ def animate_plot_apar_combo(sol, kvals: dict, save_file=False, file_code: str = 
         ani.save(file_name)
 
     plt.show(block=False)
+
+
+def plot_final_timestep_apar_combo(sol, kvals, rescale=False):
+    plt.figure()
+    ax = plt.subplot()
+
+    Nx = kvals["Nx"]
+    # TODO
+    # scalar = 1 if not rescale else np.max(sol.y)
+    scalar = 1
+
+    combined_apar = (sol.y[:Nx, -1] + sol.y[Nx:2*Nx, -1] + sol.y[2*Nx:3*Nx, -1])
+
+    ax.plot(kvals["X"], combined_apar / scalar, label="anterior", color="green")
+    ax.plot(kvals["X"], sol.y[3 * Nx:, -1] / scalar, label="posterior", color="orange")
+
+    p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, -1], sol.y[3*Nx:, -1], Nx)
+    ax.text(0.1, 1.05, f"t={sol.t[-1]},p={p_m:.4f}", transform=ax.transAxes, ha="center")  # time value
+    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, sol.t[-1]) for x in kvals["X"]], label="v", linestyle="--", color="black")  # v_func
+
+    ax.text(0.7, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+
+    # ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y[:, -1])/scalar-0.05, np.max(sol.y[:, -1])/scalar+0.05], xlabel="x", ylabel="A/P")
+    ax.legend()
+
+    plt.show(block=False)
