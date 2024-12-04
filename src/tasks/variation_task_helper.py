@@ -134,3 +134,28 @@ def split_baseline_from_results(model_type: MODELS, all_results_by_variable: lis
     assert len(results_by_variable) == len(all_results_by_variable) - 1
 
     return baseline_result, results_by_variable
+
+
+def save_runs(filename, tasks, baseline, results_by_variable):
+    save_data = {
+        "filename": filename,
+        "tasks": tasks,
+        "baseline": baseline,
+        "results_by_variable": results_by_variable
+        }
+
+    np.save("./savedata/"+filename, save_data, allow_pickle=True)
+    
+
+
+def load_runs(filename):
+    try:
+        loaded_data = np.load("./savedata/"+filename+".npy", allow_pickle=True)
+        loaded_data = loaded_data.item()
+
+        return [True, loaded_data["baseline"], loaded_data["results_by_variable"]]
+    except Exception as e:
+        print("Error occurred while loading: " + str(e))
+        return [False]
+
+
