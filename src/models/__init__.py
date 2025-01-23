@@ -21,3 +21,17 @@ def model_to_module(model: MODELS):
             return crumbs
         case _:
             raise ValueError(f"Unexpected model value: {model}")
+
+
+def model_to_string(model: MODELS):
+    match model:
+        case MODELS.TOSTEVIN:
+            return "tostevin"
+        case MODELS.GOEHRING:
+            return "goehring"
+        case MODELS.PAR3ADD:
+            return "par3addition"
+        case MODELS.CRUMBS:
+            return "crumbs"
+        case _:
+            raise ValueError(f"Unexpected model value: {model}")

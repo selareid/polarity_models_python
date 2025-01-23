@@ -1,7 +1,6 @@
 import numpy as np
-
 from src import model_task_handler
-from src.models import MODELS, model_to_module
+from src.models import MODELS, model_to_module, model_to_string
 
 
 # standard variation multipliers
@@ -159,3 +158,28 @@ def load_runs(filename):
         return [False]
 
 
+def generate_variation_save_filename(name: str, model: MODELS, Nx: int, end_time: int,
+                                    point_per_second: float, params: dict, varied_params: list,
+                                    initial_condition, tasks) -> str:
+
+    bad_hash = 0
+
+    for key in params:
+        element = params[key]
+        if isinstance(element, (int, float)):
+            bad_hash += element
+
+            if key in varied_params:
+                bad_hash += 0.5*element
+    
+    bad_hash += initial_condition.sum()
+    bad_hash += len(tasks)
+
+
+    return ( name
+            + "_" + model_to_string(model)
+            + "_" + str(Nx)
+            + "_" + str(end_time)
+            + "_" + str(point_per_second)
+            + "_" + f"{bad_hash:.7g}"
+            )
