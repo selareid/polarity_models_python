@@ -18,7 +18,7 @@ def default_v_func(kvals, x, t):
     return time_factor * peak * np.exp(-(x - center) ** 2 / (2 * sd ** 2))
 
 
-Ybar = lambda kvals, Y: 2 * integrate.simpson(Y, kvals["X"]) / kvals["L"]  # handles both A-bar and P-bar
+Ybar = lambda kvals, Y: 2 * integrate.simpson(Y, x = kvals["X"]) / kvals["L"]  # handles both A-bar and P-bar
 def default_A_cyto(kvals, A): return kvals["rho_A"] - kvals["psi"] * Ybar(kvals, A)
 def default_P_cyto(kvals, P): return kvals["rho_P"] - kvals["psi"] * Ybar(kvals, P)
 

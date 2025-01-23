@@ -24,10 +24,10 @@ def orientation_marker(orientation_code):
 
 # returns (measure, orientation, marker)
 def polarity_get_all(X, Am, Pm, Nx):
-    a_left = integrate.simpson(Am[:Nx//2], X[:Nx//2])
-    a_right = integrate.simpson(Am[Nx//2:], X[Nx//2:])
-    p_left = integrate.simpson(Pm[:Nx//2], X[:Nx//2])
-    p_right = integrate.simpson(Pm[Nx//2:], X[Nx//2:])
+    a_left = integrate.simpson(Am[:Nx//2], x = X[:Nx//2])
+    a_right = integrate.simpson(Am[Nx//2:], x = X[Nx//2:])
+    p_left = integrate.simpson(Pm[:Nx//2], x = X[:Nx//2])
+    p_right = integrate.simpson(Pm[Nx//2:], x = X[Nx//2:])
 
     measure = 0 if ((a_left + a_right)*(p_left + p_right)) == 0 else np.abs(a_left - a_right) * np.abs(p_left - p_right) / ((a_left + a_right)*(p_left + p_right))
 

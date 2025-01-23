@@ -19,7 +19,7 @@ def default_v_func(kvals, x, t):
     return time_factor * peak * np.exp(-(x - center) ** 2 / (2 * sd ** 2))
 
 
-Ybar = lambda kvals, Y: 2 * integrate.simpson(Y, kvals["X"]) / kvals["L"]  # all of J,A,P-bar
+Ybar = lambda kvals, Y: 2 * integrate.simpson(Y, x = kvals["X"]) / kvals["L"]  # all of J,A,P-bar
 def J_cyto(kvals, J, M): return kvals["rho_J"] - kvals["psi"] * Ybar(kvals, J) \
         - kvals["psi"] * Ybar(kvals, M)
 def A_cyto(kvals, A, M): return kvals["rho_A"] - kvals["psi"] * Ybar(kvals, A) \
@@ -232,7 +232,7 @@ def animate_plot(sol, kvals: dict, save_file=False, file_code: str = None, resca
         line4.set_ydata(sol.y[3*Nx:, t_i]/scalar)
         p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, t_i], sol.y[3*Nx:, t_i], Nx)
         time_label.set_text(f"t={sol.t[t_i]:.2f} p={p_m:.4f}")
-        return (line1, line2, line3, linev, time_label)
+        return (line1, line2, line3, line4, linev, time_label)
 
     ani = animation.FuncAnimation(fig, animate, interval=10000/len(sol.t), blit=True, frames=len(sol.t))
 
