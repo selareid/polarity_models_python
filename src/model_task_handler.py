@@ -16,7 +16,7 @@ def worker(input, output):
 
 
 # Output of form [(model, sol, kvals),...]
-def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5)) -> list[tuple]:
+def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5), callback=None) -> list[tuple]:
     assert NUMBER_OF_PROCESSES >= 1
 
     # create queues
@@ -38,7 +38,12 @@ def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5)) -> l
     # get and handle results (unordered)
     for i in range(len(task_list)):
         model, res = done_queue.get()
-        output_list.append((model,)+res)
+        model_res_combo = (model,)+res
+        output_list.append(model_res_combo)
+
+        if callback != None:
+            print(f"{time.time()} Running callback!")
+            callback(model_res_combo)
 
         print(f"{time.time():.1f} Finished running a task for model: {model}")
         print(f"{len(task_list)-len(output_list)} tasks remaining")
@@ -50,5 +55,5 @@ def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5)) -> l
     return output_list
 
 
-def run_tasks(task_list) -> list[tuple]:
-    return run_tasks_parallel(task_list, 1)
+def run_tasks(task_list, callback=None) -> list[tuple]:
+    return run_tasks_parallel(task_list, 1, callable)
