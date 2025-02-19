@@ -40,73 +40,40 @@ params_goehring = {
     "Nx": Nx, "points_per_second": 0.1,
 }
 
-# params_par3add = {
-#         "psi": params_goehring["psi"],
-       
-#         "D_J": params_goehring["D_A"],
-#         "D_M": params_goehring["D_P"]/2,
-#         "D_A": params_goehring["D_A"],
-#         "D_P": params_goehring["D_P"],
-        
-#         "kJP": params_goehring["k_AP"]/3,
-#         "kMP": params_goehring["k_AP"]/3,
-#         "kAP": params_goehring["k_AP"]/3,
-#         "kPA": params_goehring["k_PA"],
-
-#         "konJ": params_goehring["k_onA"] / 2,
-#         "konA": 0, # not used in writeup
-#         "konP": params_goehring["k_onP"],
-        
-#         "koffJ": 0,
-#         "koffM": params_goehring["k_offA"],
-#         "koffA": params_goehring["k_offA"],
-#         "koffP": params_goehring["k_offP"],
-
-#         "k1": params_goehring["k_onA"],
-#         "k2": params_goehring["k_onA"],
-
-#         "rho_J": 1.4,
-#         "rho_A": params_goehring["rho_A"],
-#         "rho_P": params_goehring["rho_P"],
-
-#         "sigmaJ": 1,"sigmaM": 1,"sigmaP": 1,
-#         "alpha": 1, "beta": 2,
-#     }
-
-# runs 10 onwards
 params_par3add = {
-        "psi": params_goehring["psi"],
-       
-        "D_J": params_goehring["D_A"],
-        "D_M": params_goehring["D_P"]/2,
-        "D_A": params_goehring["D_A"],
-        "D_P": params_goehring["D_P"],
-        
-        "kJP": params_goehring["k_AP"]/3,
-        "kMP": params_goehring["k_AP"]/3,
-        "kAP": params_goehring["k_AP"]/3,
-        "kPA": params_goehring["k_PA"],
+    "psi": 0.174,
+    
+    "D_J": params_goehring["D_A"],
+    "D_M": params_goehring["D_P"]/2, # this should be less diffusive, 0 is bad tho
+    "D_A": params_goehring["D_A"],
+    "D_P": params_goehring["D_P"],
+    
+    "kJP": params_goehring["k_AP"]/2,
+    "kMP": params_goehring["k_AP"]/2,
+    "kAP": params_goehring["k_AP"]/2,
+    "kPA": params_goehring["k_PA"],
 
-        "konJ": params_goehring["k_onA"] / 2,
-        "konA": 0, # not used in writeup
-        "konP": params_goehring["k_onP"],
-        
-        "koffJ": 0,
-        "koffM": params_goehring["k_offA"],
-        "koffA": params_goehring["k_offA"],
-        "koffP": params_goehring["k_offP"],
+    "konJ": params_goehring["k_onA"],
+    "konA": 0, # not used in writeup
+    "konP": params_goehring["k_onP"],
+    
+    "koffJ": params_goehring["k_offA"]/2,
+    "koffM": params_goehring["k_offA"],
+    "koffA": params_goehring["k_offA"],
+    "koffP": params_goehring["k_offP"],
 
-        "k1": params_goehring["k_onA"],
-        "k2": params_goehring["k_onA"],
+    "k1": params_goehring["k_onA"],
+    "k2": params_goehring["k_onA"],
 
-        "rho_J": 1.4,
-        "rho_A": params_goehring["rho_A"],
-        "rho_P": params_goehring["rho_P"],
-
-        "sigmaJ": 1,"sigmaM": 1,"sigmaP": 1,
-        "alpha": 1, "beta": 2,
-    }
-params_par3add = {**params_par3add, **{"kJP": 0.10768, "kAP": 0.10768, "koffM": 0.00612, "koffA": 0.00612}}
+    "rho_J": 1.282,
+    "rho_A": params_goehring["rho_A"],
+    "rho_P": params_goehring["rho_P"],
+    
+    # "v_func": v_func_zero, # use default v_func_zero
+    "Nx": Nx, "tL": 9000,
+    "points_per_second": 0.01,
+    "initial_condition": [1]*Nx + [1]*(2*Nx) + [0]*Nx,
+}
 
 
 def main():
@@ -114,35 +81,19 @@ def main():
     goehring_homo_ic = get_goehring_homo_ic()
     goehring_polarised = get_goehring_polarised(goehring_homo_ic)
 
-    args = {"varied_keys": ["kJP", "kMP", "kAP", "konJ", "koffJ", "koffM", "koffA", "k1", "k2", "rho_J"],
-            # "varied_keys": ["D_J", "D_M", "kJP", "kMP", "kAP", "konJ", "koffJ", "koffM", "koffA", "k1", "k2", "rho_J",
-                            # "sigmaJ", "sigmaM", "sigmaP"],
+    args = {"varied_keys": ["kJP", "kMP", "kAP", "konJ", "koffJ", "k1", "k2", "rho_J"],
             "g_homo": goehring_homo_ic,
             "g_polarised": goehring_polarised,
         }
     
     f0 = lambda x: func(x, args)
     x0 = [params_par3add[k] for k in args["varied_keys"]]
-    # bounds = [(params_par3add[k]/100,params_par3add[k]*100) for k in args["varied_keys"]]
-    # res = optimize.minimize(f0, x0, bounds=bounds, tol=1, options={"maxiter": 10, "disp": True})
-    # res = optimize.minimize(f0, x0, options={"maxiter": 10, "disp": True})
-    bounds = [(params_par3add[k]/1000,params_par3add[k]*1000) for k in args["varied_keys"]]
-    res = optimize.minimize(f0, x0, bounds=bounds, tol=0.1, options={"maxiter": 10, "disp": True})
-
-    # log output 3 has bounds and tol=1
-    # log output 2 has no manual bounds and no manual tol
-    # log output 4 has wider bounds (/1000, *1000) and tol=0.1 and includes sigma as options; uses multiplication residue
-    # log output 5 is same as 4 but starts with rho_j=1.2 (previously 1.4)
-    # log output 6 is log output 5 but using only polarised for residual
-    # log output 7 change kJP,kAP,kMP to all be base_params_goehring["k_AP"]/3 and let kMP vary
-    # log output 8 uses the dual-residual again
-    # log output 9 -> switch rhoJ to 1.4
-
-    # log output 10 -> switched things up
-
+    bounds = [(params_par3add[k]/100,params_par3add[k]*100) for k in args["varied_keys"]]
+    res = optimize.minimize(f0, x0, bounds=bounds, tol=0.1, options={"maxiter": 8, "disp": True})
 
     print("Finished")
     print(res)
+    print(res["x"])
 
 
 
