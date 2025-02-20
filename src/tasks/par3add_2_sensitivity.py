@@ -70,6 +70,7 @@ LABEL_P_HOM = "200225_par3add_hom_run"
 LABEL_P_POL = "200225_par3add_pol_run"
 
 OUTPUT_FOLDER = "210225"
+NO_PLOT = True # just do sim
 
 def v_func_zero(kvals, x, t):
     return 0
@@ -150,17 +151,19 @@ def do_variations(goehring_results: tuple[list], variation_pairs: list[tuple], v
         # load or run to get results
         res_pol_all = load_or_run(f"{LABEL_P_POL}_{p1}_{p2}", tasks_pol)
 
-        # compare with goehring
-        comparisons = goehring_comparer(goehring_results, res_hom_all, res_pol_all)
+        if not NO_PLOT:
+            # compare with goehring
+            comparisons = goehring_comparer(goehring_results, res_hom_all, res_pol_all)
 
-        print("\n".join([f"{c}" for c in comparisons]))
-        
-        # plot
-        plot_gcomparisons(p1, p2, comparisons, (params_par3add[p1], params_par3add[p2]))
-        # save plot
-        fig_file_name = f"./{OUTPUT_FOLDER}/{f'{time.time_ns()}'[5:]}{LABEL_P_HOM}{LABEL_P_POL}_compare_{p1}_{p2}"
-        plt.savefig(fig_file_name)
-        print(f"Saved figure to {fig_file_name}")
+            print("\n".join([f"{c}" for c in comparisons]))
+            
+            # plot
+            plot_gcomparisons(p1, p2, comparisons, (params_par3add[p1], params_par3add[p2]))
+            # save plot
+            fig_file_name = f"./{OUTPUT_FOLDER}/{f'{time.time_ns()}'[5:]}{LABEL_P_HOM}{LABEL_P_POL}_compare_{p1}_{p2}"
+            plt.savefig(fig_file_name)
+            print(f"Saved figure to {fig_file_name}")
+            plt.close("all")
 
 
 def plot_gcomparisons(p1, p2, comparisons: list[tuple[dict,float,float]], baseline_point):
