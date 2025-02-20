@@ -156,29 +156,35 @@ def do_variations(goehring_results: tuple[list], variation_pairs: list[tuple], v
             comparisons = goehring_comparer(goehring_results, res_hom_all, res_pol_all)
 
             print("\n".join([f"{c}" for c in comparisons]))
-            
-            # plot
-            plot_gcomparisons(p1, p2, comparisons, (params_par3add[p1], params_par3add[p2]))
+
+            # plot for homogeneous comparison
+            plot_gcomparisons(p1, p2, [(c[0], c[1]) for c in comparisons], (params_par3add[p1], params_par3add[p2]))
             # save plot
-            fig_file_name = f"./{OUTPUT_FOLDER}/{f'{time.time_ns()}'[5:]}{LABEL_P_HOM}{LABEL_P_POL}_compare_{p1}_{p2}"
+            fig_file_name = f"./{OUTPUT_FOLDER}/{f'{time.time_ns()}'[5:]}{LABEL_P_HOM}_compare_{p1}_{p2}"
+            plt.savefig(fig_file_name)
+            print(f"Saved figure to {fig_file_name}")
+            plt.close("all")
+            
+            # plot for polarised comparison
+            plot_gcomparisons(p1, p2, [(c[0], c[2]) for c in comparisons], (params_par3add[p1], params_par3add[p2]))
+            # save plot
+            fig_file_name = f"./{OUTPUT_FOLDER}/{f'{time.time_ns()}'[5:]}{LABEL_P_POL}_compare_{p1}_{p2}"
             plt.savefig(fig_file_name)
             print(f"Saved figure to {fig_file_name}")
             plt.close("all")
 
 
-def plot_gcomparisons(p1, p2, comparisons: list[tuple[dict,float,float]], baseline_point):
+def plot_gcomparisons(p1, p2, comparisons: list[tuple[dict,float]], baseline_point):
     plt.figure()
 
-    # max_val = np.max([[v[1],v[2]] for v in comparisons])
-    max_val = np.max([[v[2]] for v in comparisons])
+    max_val = np.max([[v[1]] for v in comparisons])
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ["violet", "blue"])
     norm = plt.Normalize(0, max_val)
 
     for point in comparisons:
         v1 = point[0][p1]
         v2 = point[0][p2]
-        # comp_val = point[1] + point[2]
-        comp_val = point[2]
+        comp_val = point[1]
         plt.scatter(v1, v2, c=comp_val, cmap=cmap, norm=norm, marker="o", s=100)
     
     plt.scatter(baseline_point[0], baseline_point[1], c="black", marker=".", s=100) # plot existing params point for comparison
