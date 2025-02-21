@@ -22,42 +22,53 @@ params_goehring = { "psi": 0.174,
                     "rho_A": 1.56, "rho_P": 1.0,
                     "alpha": 1, "beta": 2,
                     }
-params_par3add = {"psi": params_goehring["psi"],
-                  "D_J": params_goehring["D_A"],
-                  "D_M": params_goehring["D_P"]/2, # this should be less diffusive, 0 is bad tho
-                  "D_A": params_goehring["D_A"],
-                  "D_P": params_goehring["D_P"],
 
-                  "kJP": params_goehring["k_AP"]/2,
-                  "kMP": params_goehring["k_AP"]/2,
-                  "kAP": params_goehring["k_AP"]/2,
-                  "kPA": params_goehring["k_PA"],
+base_params_par3add = {"psi": params_goehring["psi"],
+                       "D_J": params_goehring["D_A"],
+                       "D_M": params_goehring["D_P"]/2,  # this should be less diffusive, 0 is bad tho
+                       "D_A": params_goehring["D_A"],
+                       "D_P": params_goehring["D_P"],
 
-                  "konJ": params_goehring["k_onA"],
-                  "konA": 0, # not used in writeup
-                  "konP": params_goehring["k_onP"],
+                       "kJP": 0.08,
+                       "kMP": 0.07,
+                       "kAP": params_goehring["k_AP"]/2,
+                       "kPA": params_goehring["k_PA"],
 
-                  "koffJ": params_goehring["k_offA"]/2,
-                  "koffM": params_goehring["k_offA"],
-                  "koffA": params_goehring["k_offA"],
-                  "koffP": params_goehring["k_offP"],
+                       "konJ": 0.014,
+                       "konA": 0,  # not used in writeup
+                       "konP": params_goehring["k_onP"],
 
-                  "k1": params_goehring["k_onA"],
-                  "k2": params_goehring["k_onA"],
+                       "koffJ": params_goehring["k_offA"]/2,
+                       "koffM": params_goehring["k_offA"],
+                       "koffA": params_goehring["k_offA"],
+                       "koffP": params_goehring["k_offP"],
 
-                  "rho_J": 1.2,
-                  "rho_A": params_goehring["rho_A"],
-                  "rho_P": params_goehring["rho_P"],
+                       "k1": params_goehring["k_onA"],
+                       "k2": 0.0022,
 
-                  "sigmaJ": 1,"sigmaM": 1,"sigmaP": 1,
-                  "alpha": 1, "beta": 2,
-                  }
+                       "rho_J": 1.2,
+                       "rho_A": params_goehring["rho_A"],
+                       "rho_P": params_goehring["rho_P"],
 
-PARAMS_TO_VARY = ["kJP","kMP","kAP","konJ","koffJ","k1","k2","rho_J"]
+                       "sigmaJ": 1, "sigmaM": 1, "sigmaP": 1,
+                       "alpha": 1, "beta": 2,
+                       }
 
-MAX_MULTIPLIER = 1.5
-MIN_MULTIPLIER = 0.5
-TOTAL_STEPS = 13
+PARAMS_TO_VARY = ["kJP", "kMP", "kAP", "konJ",
+                  "koffJ", "koffM", "koffA",
+                  "k1", "k2",
+                  "rho_J"
+                  ]
+# PARAMS_TO_VARY = ["kJP", "konJ", "koffJ", "k1", "k2", "rho_J"]
+# PARAMS_TO_VARY = ["kJP","kMP","kAP","konJ"]
+# PARAMS_TO_VARY = ["konJ","koffJ","k1","k2","rho_J"]
+# PARAMS_TO_VARY = ["kAP", "koffJ", "koffM", "koffA"]
+
+
+MAX_MULTIPLIER = 1.25
+MIN_MULTIPLIER = 0.75
+# TOTAL_STEPS = 13
+TOTAL_STEPS = 4
 
 NX = 100
 TL_HOM = 3000
@@ -69,8 +80,10 @@ INIT_COND_HOM = [1]*NX + [1]*(2*NX) + [0]*NX
 LABEL_P_HOM = "200225_par3add_hom_run"
 LABEL_P_POL = "200225_par3add_pol_run"
 
-OUTPUT_FOLDER = "210225"
-NO_PLOT = True # just do sim
+OUTPUT_FOLDER = "210225_r7"
+NO_PLOT = True  # just do sim
+MAX_REPETITIONS = 17
+
 
 def v_func_zero(kvals, x, t):
     return 0
@@ -92,13 +105,27 @@ def main():
     print("Getting goehring results")
     goehring_res = get_goehring_res()
 
+    params_par3add = base_params_par3add
+
     print("Beginning variations")
-    do_variations(goehring_res, variation_pairs, variation_multipliers)
+    for rep_i in range(MAX_REPETITIONS):
+        print(f"Running run number {rep_i}/{MAX_REPETITIONS}")
+        best_point = do_variations(params_par3add, goehring_res, variation_pairs, variation_multipliers)
+        print(f"Finished run {rep_i}/{MAX_REPETITIONS}")
+        print(f"Best point was {best_point}")
+        params_par3add = {**params_par3add, **best_point[0]}
+
+        if best_point is None:
+            break
 
     # plt.show(block=True)
 
 
-def do_variations(goehring_results: tuple[list], variation_pairs: list[tuple], variation_multipliers: list):
+def do_variations(params_par3add, goehring_results: tuple[list], variation_pairs: list[tuple],
+                  variation_multipliers: tuple[dict, float]) -> dict:
+
+    best_point: tuple[dict, float] = None
+
     for i_variation_pair in range(len(variation_pairs)):
         variation_pair = variation_pairs[i_variation_pair]
 
@@ -151,10 +178,14 @@ def do_variations(goehring_results: tuple[list], variation_pairs: list[tuple], v
         # load or run to get results
         res_pol_all = load_or_run(f"{LABEL_P_POL}_{p1}_{p2}", tasks_pol)
 
-        if not NO_PLOT:
-            # compare with goehring
-            comparisons = goehring_comparer(goehring_results, res_hom_all, res_pol_all)
+        # compare with goehring
+        comparisons = goehring_comparer(goehring_results, res_hom_all, res_pol_all)
 
+        for c in comparisons:
+            if best_point is None or best_point[1] > c[2]:  # lower polarised difference
+                best_point = (c[0], c[2])
+
+        if not NO_PLOT:
             print("\n".join([f"{c}" for c in comparisons]))
 
             # plot for homogeneous comparison
