@@ -38,7 +38,7 @@ params_par3add = {
     "D_P": params_goehring["D_P"],
 
     "kJP": params_goehring["k_AP"]/2,
-    "kMP": params_goehring["k_AP"]/2,
+    "kMP": 0.07,#params_goehring["k_AP"]/2,
     "kAP": params_goehring["k_AP"]/2,
     "kPA": params_goehring["k_PA"],
 
