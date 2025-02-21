@@ -42,18 +42,18 @@ params_par3add = {
     "kAP": params_goehring["k_AP"]/2,
     "kPA": params_goehring["k_PA"],
 
-    "konJ": 0.013,
-    "konA": 0, # not used in writeup
+    "konJ": 0.014,
+    "konA": 0,  # not used in writeup
     "konP": params_goehring["k_onP"],
 
-    "koffJ": 0.003,#0.00125,
+    "koffJ": params_goehring["k_offA"]/2,
     "koffM": params_goehring["k_offA"],
     "koffA": params_goehring["k_offA"],
     "koffP": params_goehring["k_offP"],
 
     "k1": params_goehring["k_onA"],
-    "k2": 0.0025,
-    
+    "k2": 0.002,
+ 
     "rho_J": 1.2,
     "rho_A": params_goehring["rho_A"],
     "rho_P": params_goehring["rho_P"],
