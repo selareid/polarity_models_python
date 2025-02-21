@@ -52,7 +52,7 @@ params_par3add = {
     "koffP": params_goehring["k_offP"],
 
     "k1": params_goehring["k_onA"],
-    "k2": 0.002,
+    "k2": 0.0027,
  
     "rho_J": 1.2,
     "rho_A": params_goehring["rho_A"],
