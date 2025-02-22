@@ -30,14 +30,14 @@ params_goehring = {
 }
 
 params_par3add = {
-    "psi": 0.174,
+    "psi": params_goehring["psi"],
 
     "D_J": params_goehring["D_A"],
-    "D_M": params_goehring["D_P"]/2, # this should be less diffusive, 0 is bad tho
+    "D_M": params_goehring["D_P"]/2,  # this should be less diffusive, 0 is bad tho
     "D_A": params_goehring["D_A"],
     "D_P": params_goehring["D_P"],
 
-    "kJP": 0.08,#params_goehring["k_AP"]/2,
+    "kJP": 0.08,
     "kMP": 0.07,
     "kAP": params_goehring["k_AP"]/2,
     "kPA": params_goehring["k_PA"],
@@ -53,14 +53,34 @@ params_par3add = {
 
     "k1": params_goehring["k_onA"],
     "k2": 0.0022,
- 
+
     "rho_J": 1.2,
     "rho_A": params_goehring["rho_A"],
     "rho_P": params_goehring["rho_P"],
 
-    "sigmaJ": 1,"sigmaM": 1,"sigmaP": 1,
+    "sigmaJ": 1, "sigmaM": 1, "sigmaP": 1,
     "alpha": 1, "beta": 2,
    }
+
+# Best points from 17 iterative 2-param variation runs
+params_par3add = {**params_par3add, **{'kMP': 0.0525, 'koffM': 0.00675}}
+params_par3add = {**params_par3add, **{'koffM': 0.0084375, 'k1': 0.010725}}
+params_par3add = {**params_par3add, **{'koffA': 0.00405, 'k1': 0.00983125}}
+params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
+params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
+params_par3add = {**params_par3add, **{'koffA': 0.004387, 'k2': 0.0023833}}
+params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
+params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
+params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
+params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
+params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
+params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
+params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
+params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
+params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
+params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
+params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
+
 
 
 variation_params_par3add = [
