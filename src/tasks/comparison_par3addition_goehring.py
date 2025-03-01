@@ -62,24 +62,41 @@ params_par3add = {
     "alpha": 1, "beta": 2,
    }
 
-# Best points from 17 iterative 2-param variation runs
-params_par3add = {**params_par3add, **{'kMP': 0.0525, 'koffM': 0.00675}}
-params_par3add = {**params_par3add, **{'koffM': 0.0084375, 'k1': 0.010725}}
-params_par3add = {**params_par3add, **{'koffA': 0.00405, 'k1': 0.00983125}}
-params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
-params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
-params_par3add = {**params_par3add, **{'koffA': 0.004387, 'k2': 0.0023833}}
-params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
-params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
-params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
-params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
-params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
-params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
-params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
-params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
-params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
-params_par3add = {**params_par3add, **{'kAP': 0.094340, 'koffJ': 0.00268125}}
-params_par3add = {**params_par3add, **{'kAP': 0.087083, 'koffJ': 0.002925}}
+# Uses a mixed metric and more runs
+params_par3add = {**params_par3add, **{'koffM': 0.0067500, 'k1': 0.01072500}}
+params_par3add = {**params_par3add, **{'kMP': 0.052500, 'koffM': 0.0084375}}
+params_par3add = {**params_par3add, **{'kJP': 0.073333, 'kAP': 0.11875}}
+params_par3add = {**params_par3add, **{'kAP': 0.1484375, 'k2': 0.0027500}}
+params_par3add = {**params_par3add, **{'kJP': 0.067222, 'kAP': 0.18554}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
+
+
+
+
+
+
+
 
 
 
