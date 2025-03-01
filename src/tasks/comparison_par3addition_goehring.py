@@ -62,41 +62,34 @@ params_par3add = {
     "alpha": 1, "beta": 2,
    }
 
-# Uses a mixed metric and more runs
-params_par3add = {**params_par3add, **{'koffM': 0.0067500, 'k1': 0.01072500}}
-params_par3add = {**params_par3add, **{'kMP': 0.052500, 'koffM': 0.0084375}}
-params_par3add = {**params_par3add, **{'kJP': 0.073333, 'kAP': 0.11875}}
-params_par3add = {**params_par3add, **{'kAP': 0.1484375, 'k2': 0.0027500}}
-params_par3add = {**params_par3add, **{'kJP': 0.067222, 'kAP': 0.18554}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-params_par3add = {**params_par3add, **{'koffJ': 0.002475, 'koffA': 0.00585}}
-
-
-
-
-
-
-
+# Using the 5(?)-way mixed metric
+params_par3add = {**params_par3add, **{'kMP': 0.052500000000000005, 'koffM': 0.006750000000000001}}
+params_par3add = {**params_par3add, **{'koffM': 0.0084375, 'k1': 0.010725000000000002}}
+params_par3add = {**params_par3add, **{'kJP': 0.07333333333333333, 'kAP': 0.11875}}
+params_par3add = {**params_par3add, **{'kAP': 0.1484375, 'koffJ': 0.002025}}
+params_par3add = {**params_par3add, **{'kJP': 0.06722222222222222, 'k2': 0.00165}}
+params_par3add = {**params_par3add, **{'kAP': 0.185546875, 'koffA': 0.00405}}
+params_par3add = {**params_par3add, **{'kJP': 0.06162037037037037, 'kAP': 0.23193359375}}
+params_par3add = {**params_par3add, **{'kAP': 0.2899169921875, 'koffJ': 0.00151875}}
+params_par3add = {**params_par3add, **{'kAP': 0.362396240234375, 'koffJ': 0.0013921874999999998}}
+params_par3add = {**params_par3add, **{'kAP': 0.3925959269205729, 'koffA': 0.0030375}}
+params_par3add = {**params_par3add, **{'kMP': 0.048125, 'k1': 0.009831250000000001}}
+params_par3add = {**params_par3add, **{'kAP': 0.4253122541639539, 'koffA': 0.0022781249999999998}}
+params_par3add = {**params_par3add, **{'kMP': 0.04411458333333333, 'k1': 0.009011979166666668}}
+params_par3add = {**params_par3add, **{'koffJ': 0.0012761718749999997, 'koffA': 0.0028476562499999995}}
+params_par3add = {**params_par3add, **{'koffA': 0.0030849609374999994, 'k2': 0.0017874999999999998}}
+params_par3add = {**params_par3add, **{'kAP': 0.46075494201095, 'koffA': 0.0023137207031249996}}
+params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
+params_par3add = {**params_par3add, **{'koffA': 0.0026511383056640617, 'k2': 0.0016385416666666664}}
+# params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
+# params_par3add = {**params_par3add, **{'koffA': 0.0026511383056640617, 'k2': 0.0016385416666666664}}
+# params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
+# params_par3add = {**params_par3add, **{'koffA': 0.0026511383056640617, 'k2': 0.0016385416666666664}}
+# params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
+# params_par3add = {**params_par3add, **{'koffA': 0.0026511383056640617, 'k2': 0.0016385416666666664}}
+# params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
+# params_par3add = {**params_par3add, **{'koffA': 0.0026511383056640617, 'k2': 0.0016385416666666664}}
+# params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
 
 
 
