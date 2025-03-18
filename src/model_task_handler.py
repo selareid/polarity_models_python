@@ -2,6 +2,7 @@ import copy
 import time
 from multiprocessing import Process, Queue, cpu_count
 from .models import model_to_module
+import numpy as np
 
 
 def worker(input, output):
@@ -18,6 +19,7 @@ def worker(input, output):
 # Output of form [(model, sol, kvals),...]
 def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5), callback=None) -> list[tuple]:
     assert NUMBER_OF_PROCESSES >= 1
+    assert cpu_count() >= NUMBER_OF_PROCESSES
 
     # create queues
     task_queue = Queue()
@@ -57,3 +59,40 @@ def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5), call
 
 def run_tasks(task_list, callback=None) -> list[tuple]:
     return run_tasks_parallel(task_list, 1, callable)
+
+
+def load_or_run(name: str, tasks: list[tuple], force_run=False) -> list[tuple]:
+    filename = f"{name}_{bad_hash_for_filename(tasks):.7g}"
+
+    try:
+        if force_run:
+            raise Exception("force_run=True")
+        
+        loaded_data = np.load("./savedata/"+filename+".npy", allow_pickle=True)
+        print(f"Loading of {name} succeeded!")
+        return loaded_data
+    except Exception as e:
+        print(f"Failed loading of {name} because: " + str(e))
+        res = run_tasks_parallel(tasks)
+
+        print("Saving results")
+        np.save("./savedata/"+filename+".npy", res, allow_pickle=True)
+
+        return res
+
+
+def bad_hash_for_filename(tasks):
+    bad_hash = 0
+
+    for task in tasks:
+        params = task[1]
+        for key in params:
+            element = params[key]
+            if isinstance(element, (int, float)):
+                bad_hash += element
+            elif key == "initial_condition":
+                bad_hash += np.sum(element)
+    
+    bad_hash += len(tasks)
+    
+    return bad_hash
