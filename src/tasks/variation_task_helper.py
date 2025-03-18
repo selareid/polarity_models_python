@@ -3,7 +3,6 @@ from src import model_task_handler
 from src.models import MODELS, model_to_module, model_to_string
 from multiprocessing import cpu_count
 
-
 # standard variation multipliers
 def get_variation_multiplier(option=None):
     # variation_multipliers = [0.1, 0.25, 0.5, 2, 5, 10] # wide
