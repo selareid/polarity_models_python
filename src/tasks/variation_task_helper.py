@@ -1,6 +1,7 @@
 import numpy as np
 from src import model_task_handler
 from src.models import MODELS, model_to_module, model_to_string
+from multiprocessing import cpu_count
 
 
 # standard variation multipliers
@@ -62,7 +63,7 @@ def generate_tasks(model_type: MODELS, variations_list: list[float], default_par
 
 
 # assume tasks have sort property "sort"
-def run_grouped_tasks(tasks: list[list[tuple]]):
+def run_grouped_tasks(tasks: list[list[tuple]], NUMBER_OF_PROCESSES=int(cpu_count()/1.5),):
     tasks_collapsed = []
 
     for task_list_i in range(0,len(tasks)):
@@ -72,7 +73,7 @@ def run_grouped_tasks(tasks: list[list[tuple]]):
 
     assert len(tasks_collapsed) == sum([len(task_list) for task_list in tasks])
 
-    results = model_task_handler.run_tasks_parallel(tasks_collapsed)
+    results = model_task_handler.run_tasks_parallel(tasks_collapsed, NUMBER_OF_PROCESSES)
     results.sort(key=lambda res: res[2]["sort"])
 
     results_by_variable = [[] for _ in range(0, len(tasks))]
