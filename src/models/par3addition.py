@@ -106,6 +106,7 @@ R_J = lambda kvals, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r: -kvals["k1"]*A_cyto_
                                                     + kvals["konJ"]*J_cyto_r - kvals["koffJ"]*J[x_i] \
                                                     - kvals["kJP"]*P[x_i]**kvals["alpha"]*J[x_i]
 R_M = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals["k1"]*A_cyto_r*J[x_i] - kvals["k2"]*M[x_i] \
+                                                    - kvals["koffM"]*M[x_i] \
                                                     - kvals["kMP"]*P[x_i]*M[x_i]  # added antagonism
 R_A = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals["k2"]*M[x_i] + kvals["konA"]*A_cyto_r - kvals["koffA"]*A[x_i] \
                                                     - kvals["kAP"]*P[x_i]*A[x_i]  # added antagonism
