@@ -64,12 +64,12 @@ def main():
         ax = axs[i]
 
         ax.plot(res_emg[2]["X"], A,
-                color=figure_helper.goehring_colours[0],
+                color=figure_helper.par3add_colours[0],
                 linewidth=figure_helper.line_width,
                 label=figure_helper.goehring_labels[0],
                 )
         ax.plot(res_emg[2]["X"], P,
-                color=figure_helper.goehring_colours[1],
+                color=figure_helper.par3add_colours[1],
                 linewidth=figure_helper.line_width,
                 label=figure_helper.goehring_labels[1],
                 )
