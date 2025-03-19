@@ -112,9 +112,10 @@ def main():
         ax.text(0.05, 1.02, ["A","B","C","D"][i], transform=ax.transAxes, ha="center", fontsize=figure_helper.font_size)
         ax.text(0.9, 1.02, f"p={metric_functions.polarity_measure(res_emg[2]["X"], M+A, P, Nx):.2f}",
                 transform=ax.transAxes, ha="center", fontsize=figure_helper.label_font_size)
-
+        ax.set_xlabel(figure_helper.xlabel, fontsize=figure_helper.font_size)
 
     axs[0].legend(loc="upper left", fontsize=figure_helper.label_font_size)
+    axs[0].set_ylabel(figure_helper.ylabel, fontsize=figure_helper.font_size)
     plt.xticks([0, 70])
     plt.yticks([0, 1, 2, 3, 4])
 
