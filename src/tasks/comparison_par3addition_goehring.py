@@ -19,6 +19,9 @@ def v_func_zero(kvals, x, t):
 Module_Par3Add = model_to_module(MODELS.PAR3ADD)
 Module_Goehring = model_to_module(MODELS.GOEHRING)
 
+NUM_THREADS = 11
+
+
 params_goehring = {
     "psi": 0.174,
     "D_A": 0.28, "D_P": 0.15,
@@ -30,73 +33,46 @@ params_goehring = {
 }
 
 params_par3add = {
-    "psi": params_goehring["psi"],
+    "psi": 0.174,
 
-    "D_J": params_goehring["D_A"],
-    "D_M": params_goehring["D_P"]/2,  # this should be less diffusive, 0 is bad tho
-    "D_A": params_goehring["D_A"],
-    "D_P": params_goehring["D_P"],
+    "D_J": 0.28,
+    "D_M": 7.5*10**(-2),  # this should be less diffusive, 0 is bad tho
+    "D_A": 0.28,
+    "D_P": 0.15,
 
-    "kJP": 0.08,
-    "kMP": 0.07,
-    "kAP": params_goehring["k_AP"]/2,
-    "kPA": params_goehring["k_PA"],
+    "k1": 9.01*10**(-3),
+    "k2": 1.64*10**(-3),
 
-    "konJ": 0.014,
-    "konA": 0,  # not used in writeup
-    "konP": params_goehring["k_onP"],
-
-    "koffJ": params_goehring["k_offA"]/2,
-    "koffM": params_goehring["k_offA"],
-    "koffA": params_goehring["k_offA"],
-    "koffP": params_goehring["k_offP"],
-
-    "k1": params_goehring["k_onA"],
-    "k2": 0.0022,
+    "kJP": 6.16*10**(-2),
+    "kMP": 4.41*10**(-2),
+    "kAP": 4.61*10**(-1),
+    "kPA": 2,
 
     "rho_J": 1.2,
-    "rho_A": params_goehring["rho_A"],
-    "rho_P": params_goehring["rho_P"],
+    "rho_A": 1.56,
+    "rho_P": 1,
+
+    "konJ": 1.4*10**(-2),
+    "konP": 4.74*10**(-2),
+
+    "koffJ": 1.17*10**(-3),
+    "koffM": 8.44*10**(-3),
+    "koffA": 2.65*10**(-3),
+    "koffP": 7.3*10**(-3),
 
     "sigmaJ": 1, "sigmaM": 1, "sigmaP": 1,
+
+    # not used in writeup
+    "konA": 0,  
     "alpha": 1, "beta": 2,
    }
-
-# Using the 5(?)-way mixed metric
-params_par3add = {**params_par3add, **{'kMP': 0.052500000000000005, 'koffM': 0.006750000000000001}}
-params_par3add = {**params_par3add, **{'koffM': 0.0084375, 'k1': 0.010725000000000002}}
-params_par3add = {**params_par3add, **{'kJP': 0.07333333333333333, 'kAP': 0.11875}}
-params_par3add = {**params_par3add, **{'kAP': 0.1484375, 'koffJ': 0.002025}}
-params_par3add = {**params_par3add, **{'kJP': 0.06722222222222222, 'k2': 0.00165}}
-params_par3add = {**params_par3add, **{'kAP': 0.185546875, 'koffA': 0.00405}}
-params_par3add = {**params_par3add, **{'kJP': 0.06162037037037037, 'kAP': 0.23193359375}}
-params_par3add = {**params_par3add, **{'kAP': 0.2899169921875, 'koffJ': 0.00151875}}
-params_par3add = {**params_par3add, **{'kAP': 0.362396240234375, 'koffJ': 0.0013921874999999998}}
-params_par3add = {**params_par3add, **{'kAP': 0.3925959269205729, 'koffA': 0.0030375}}
-params_par3add = {**params_par3add, **{'kMP': 0.048125, 'k1': 0.009831250000000001}}
-params_par3add = {**params_par3add, **{'kAP': 0.4253122541639539, 'koffA': 0.0022781249999999998}}
-params_par3add = {**params_par3add, **{'kMP': 0.04411458333333333, 'k1': 0.009011979166666668}}
-params_par3add = {**params_par3add, **{'koffJ': 0.0012761718749999997, 'koffA': 0.0028476562499999995}}
-params_par3add = {**params_par3add, **{'koffA': 0.0030849609374999994, 'k2': 0.0017874999999999998}}
-params_par3add = {**params_par3add, **{'kAP': 0.46075494201095, 'koffA': 0.0023137207031249996}}
-params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
-params_par3add = {**params_par3add, **{'koffA': 0.0026511383056640617, 'k2': 0.0016385416666666664}}
-# params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
-# params_par3add = {**params_par3add, **{'koffA': 0.0026511383056640617, 'k2': 0.0016385416666666664}}
-# params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
-# params_par3add = {**params_par3add, **{'koffA': 0.0026511383056640617, 'k2': 0.0016385416666666664}}
-# params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
-# params_par3add = {**params_par3add, **{'koffA': 0.0026511383056640617, 'k2': 0.0016385416666666664}}
-# params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
-# params_par3add = {**params_par3add, **{'koffA': 0.0026511383056640617, 'k2': 0.0016385416666666664}}
-# params_par3add = {**params_par3add, **{'koffJ': 0.0011698242187499997, 'koffA': 0.0028921508789062494}}
-
 
 
 variation_params_par3add = [
     "psi", "D_J", "D_M", "D_A", "D_P", "sigmaJ", "sigmaM", "sigmaP",
     "k1", "k2", "kAP", "kJP", "kMP", "kPA", "alpha", "beta",
-    "rho_A", "rho_J", "rho_P", "konA", "konJ", "konP", "koffA", "koffJ", "koffP"
+    "rho_A", "rho_J", "rho_P", "konA", "konJ", "konP",
+    "koffA", "koffJ", "koffP", "koffM"
 ]
 
 variation_params_goehring = [
@@ -137,21 +113,22 @@ def main():
         "Nx": Nx,
     }
 
-    ## run without advection to get initial condition (IC)
+    # run without advection to get initial condition (IC)
     init_conds = get_homogeneous_initial_conditions(homogeneous_ic_goehring, homogeneous_ic_par3add,
                                                     parameters_goehring, parameters_par3add)
 
-    ## Run with advection using found IC
     do_establishment_run(init_conds, parameters_goehring, parameters_par3add, tL_est)
+    # Run with advection using found IC
+
+    print("starting variations")
 
     # Do emergence/establishment variation test
-    # do_establishment_param_variation(Nx, init_conds, parameters_goehring, parameters_par3add, points_per_second, tL_est)
+    do_establishment_param_variation(Nx, init_conds, parameters_goehring, parameters_par3add, points_per_second, tL_est)
 
-    # plt.show(block=True)
+    # Maintenance variation test
+    do_maintenance_param_variation(Nx, {**parameters_goehring, "v_func": v_func_zero}, {**parameters_par3add, "v_func": v_func_zero}, points_per_second, tL_est)
 
-    # TODO, don't include in commit
-    # on my linux install, stuff doesn't render correctly so I just auto-close it
-    plt.close('all')
+    # plt.show()
 
 
 def get_homogeneous_initial_conditions(homogeneous_ic_goehring, homogeneous_ic_par3add, parameters_goehring,
@@ -164,7 +141,7 @@ def get_homogeneous_initial_conditions(homogeneous_ic_goehring, homogeneous_ic_p
                                    **parameters_goehring, "initial_condition": homogeneous_ic_goehring,
                                    "label": "goehring finding IC", "tL": 5000, "v_func": v_func_zero})
                                ]
-    multi_res_initial_condition = model_task_handler.run_tasks_parallel(tasks_initial_condition)  # [0]
+    multi_res_initial_condition = model_task_handler.load_or_run("comparison_get_hom_ic", tasks_initial_condition)  # [0]
     init_conds = {}
     for res in multi_res_initial_condition:
         print(res[0])
@@ -198,31 +175,24 @@ def do_establishment_run(init_conds, parameters_goehring, parameters_par3add, tL
                                "initial_condition": init_conds[MODELS.GOEHRING]})
                            # "initial_condition": homogeneous_ic_goehring})
                            ]
-    multi_res_establishment = model_task_handler.run_tasks_parallel(tasks_establishment)  # [0]
+    multi_res_establishment = model_task_handler.load_or_run("comp_establishment_run", tasks_establishment)  # [0]
     for res in multi_res_establishment:
         match res[0]:
             case MODELS.GOEHRING:
-                #     Module_Goehring.animate_plot
-
-                #     # plot_overall_quantities_over_time
-                #     # plot_metric_comparisons
-
-                #     # panic
-                # pass  # TODO
                 g_res = res
             case MODELS.PAR3ADD:
                 # Module_Par3Add.animate_plot_apar_combo(res[1], res[2], save_file=True, no_par3=True)
                 # Module_Par3Add.animate_plot_apar_combo(res[1], res[2], save_file=True, no_par3=False)
                 p_res = res
 
-            #     Module_Par3Add.animate_plot(res[1], res[2], save_file=True)
 
         # model_to_module(res[0]).animate_plot(res[1], res[2], save_file=True)
     
     comparison_animation(g_res[1], g_res[2], p_res[1], p_res[2], save_file=True)
 
 
-def do_establishment_param_variation(Nx, init_conds, parameters_goehring, parameters_par3add, points_per_second,
+def do_establishment_param_variation(Nx, init_conds, parameters_goehring,
+                                     parameters_par3add, points_per_second,
                                      tL_est):
     print(f"Testing polarity establishment of goehring and par3add")
     filename_establishment_tasks = "comparison_par3addition_goehring_establishment_tasks_save"
@@ -251,7 +221,7 @@ def do_establishment_param_variation(Nx, init_conds, parameters_goehring, parame
         parameters_par3add, variation_params_par3add,
         init_conds[MODELS.PAR3ADD], tasks_p)
 
-    print("attempting load")
+    print(f"attempting load of {filename_establishment_tasks_goehring} and {filename_establishment_tasks_par3add}")
     load_data_goehring = variation_task_helper.load_runs(filename_establishment_tasks_goehring)
     load_data_par3add = variation_task_helper.load_runs(filename_establishment_tasks_par3add)
     if (not force_run) and load_data_goehring[0] and load_data_par3add[0]:
@@ -271,17 +241,17 @@ def do_establishment_param_variation(Nx, init_conds, parameters_goehring, parame
             baseline_goehring = load_data_goehring[1]
             results_by_variable_goehring = load_data_goehring[2]
             print("loaded goehring")
-        
+
         if not load_data_par3add[0]:
             combined_tasks = combined_tasks + tasks_p
         else:
             baseline_par3add = load_data_par3add[1]
             results_by_variable_par3add = load_data_par3add[2]
-            print("loading par3add")
+            print("loaded par3add")
 
         print(f"{len(combined_tasks)} sets of tasks to run, totalling {sum([len(combined_tasks[i]) for i in range(0, len(combined_tasks))])} tasks")
 
-        res_out = variation_task_helper.run_grouped_tasks(combined_tasks, 11)
+        res_out = variation_task_helper.run_grouped_tasks(combined_tasks, NUM_THREADS)
         res_out_goehring = []
         res_out_par3add = []
 
@@ -295,28 +265,34 @@ def do_establishment_param_variation(Nx, init_conds, parameters_goehring, parame
                 case MODELS.PAR3ADD:
                     res_out_par3add.append(sub_task_arr)
 
-        if len(res_out_goehring) == 0:
+        if len(res_out_goehring) != 0:
             baseline_goehring, results_by_variable_goehring = variation_task_helper.split_baseline_from_results(
                 MODELS.GOEHRING, res_out_goehring, index_100x_g)
-        if len(res_out_par3add) == 0:
+            variation_task_helper.save_runs(filename_establishment_tasks_goehring, tasks_g,
+                                            baseline_goehring, results_by_variable_goehring)
+            print("Saved goehring runs")
+
+        if len(res_out_par3add) != 0:
             baseline_par3add, results_by_variable_par3add = variation_task_helper.split_baseline_from_results(
                 MODELS.PAR3ADD, res_out_par3add, index_100x_p)
+            variation_task_helper.save_runs(filename_establishment_tasks_par3add, tasks_p,
+                                            baseline_par3add, results_by_variable_par3add)
+            print("Saved par3add runs")
 
-        variation_task_helper.save_runs(filename_establishment_tasks_goehring, tasks_g,
-                                        baseline_goehring, results_by_variable_goehring)
-        variation_task_helper.save_runs(filename_establishment_tasks_par3add, tasks_p,
-                                        baseline_par3add, results_by_variable_par3add)
-        
     # Plot
+    fn1 = "010325_p1.png"
+    fn2 = "010325_p2.png"
     print(f"Plotting")
     Module_Goehring.plot_variation_sets(results_by_variable_goehring,
                                         label="goehring polarity establishment,tL=" + str(tL_est),
                                         x_axis_labels=xticks_g)
-    plt.savefig(f"130225_p1.png")
+    plt.savefig(fn1, bbox_inches="tight")
+    print(f"Saved goehring variation plot to {fn1}")
     Module_Par3Add.plot_variation_sets(results_by_variable_par3add,
                                        label="par3add polarity establishment,tL=" + str(tL_est),
                                        x_axis_labels=xticks_p)
-    plt.savefig(f"130225_p2.png")
+    plt.savefig(fn2, bbox_inches="tight")
+    print(f"Saved par3add variation plot to {fn2}")
 
     Module_Par3Add.animate_plot(baseline_par3add[0], baseline_par3add[1], save_file=True, file_code="baselinepar3addtestingahhh140215")
 
@@ -385,4 +361,6 @@ def comparison_animation(pol_goehring_sol, pol_goehring_kvals, pol_par3add_sol, 
 
 
 if __name__ == '__main__':
+    matplotlib.use('Agg') # block plots from appearing
     main()
+    
