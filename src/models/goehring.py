@@ -32,7 +32,7 @@ DEFAULT_PARAMETERS = {
     "x0": 0,
     "xL": 67.3,  # L / 2
     "t0": 0,
-    "tL": 5000,
+    "tL": 9000,
 
     # Model parameters and functions
     "psi": 0.174,

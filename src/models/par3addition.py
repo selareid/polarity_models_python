@@ -37,52 +37,43 @@ DEFAULT_PARAMETERS = {
     "x0": 0,
     "xL": 67.3,  # L / 2
     "t0": 0,
-    "tL": 5000,
+    "tL": 9000,
 
-    # Model parameters and functions #
-    "psi": 0.174,  # surface to volume conversion factor
+    "v_func": default_v_func,
+    
+    # Model parameters
+    "psi": 0.174,
 
-    # diffusion coefficients
     "D_J": 0.28,
-    "D_M": 0.28,
+    "D_M": 7.5*10**(-2),
     "D_A": 0.28,
     "D_P": 0.15,
 
-    # velocity coefficients
-    "sigmaJ": 1,
-    "sigmaM": 1,
-    "sigmaP": 1,
+    "k1": 9.01*10**(-3),
+    "k2": 1.64*10**(-3),
 
-    # aPar complex change coefficients
-    "k1": 8.58 * 10**(-3),
-    "k2": 6.5 * 10**(-3),
+    "kJP": 6.16*10**(-2),
+    "kMP": 4.41*10**(-2),
+    "kAP": 4.61*10**(-1),
+    "kPA": 2,
 
-    # antagonism
-    "kJP": 0.190,
-    "kPA": 2.0,
-
-    # antagonism exponents
-    "alpha": 1,
-    "beta": 2,
-
-    # total amount in system
+    "rho_J": 1.2,
     "rho_A": 1.56,
-    "rho_J": 1.56,
-    "rho_P": 1.0,
+    "rho_P": 1,
 
-    "konJ": 8.58 * 10**(-3),
+    "konJ": 1.4*10**(-2),
+    "konP": 4.74*10**(-2),
+
+    "koffJ": 1.17*10**(-3),
+    "koffM": 8.44*10**(-3),
+    "koffA": 2.65*10**(-3),
+    "koffP": 7.3*10**(-3),
+
+    "sigmaJ": 1, "sigmaM": 1, "sigmaP": 1,
+
+    # not used in writeup
     "konA": 0,
-    "konP": 4.74 * 10**(-2),
-
-    "koffJ": 7.3 * 10**(-3),
-    "koffA": 5.4 * 10**(-3),
-    "koffP": 7.3 * 10**(-3),
-
-    "v_func": default_v_func,
-
-    # these two added later
-    "kMP": 0,
-    "kAP": 0,
+    "alpha": 1, "beta": 2,
 }
 
 
