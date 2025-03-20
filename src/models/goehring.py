@@ -403,5 +403,7 @@ def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axi
     ax.legend()
     ax.set(xlabel="percentage of baseline value", ylabel="polarity", ylim=[-0.1,1.1], xlim=xlim)
     ax.title.set_text(label)
+    ax.tick_params(which="both", labelsize=15)
+    ax.tick_params(axis='x', labelrotation=60)
     plt.show(block=False)
 
