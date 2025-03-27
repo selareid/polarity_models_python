@@ -25,6 +25,7 @@ params_goehring = {"psi": 0.174,
                    "alpha": 1, "beta": 2,
                    }
 
+# starting parameters
 base_params_par3add = {"psi": params_goehring["psi"],
                        "D_J": params_goehring["D_A"],
                        "D_M": params_goehring["D_P"]/2,
