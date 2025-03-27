@@ -13,6 +13,7 @@ from src import figure_helper
 def v_func_zero(kvals, x, t):
     return 0
 
+
 Module_Par3Add = model_to_module(MODELS.PAR3ADD)
 
 params = {
@@ -44,7 +45,7 @@ params = {
     "koffP": 7.3*10**(-3),
 
     # not used in writeup
-    "konA": 0,  
+    "konA": 0,
     "sigmaJ": 1, "sigmaM": 1, "sigmaP": 1,
     "alpha": 1, "beta": 2,
    }
@@ -55,26 +56,26 @@ def main():
     tL = 9000
     # points_per_second = 0.1
     plot_times = [0, 300, 800, 9000]
-    
+
     # run to reach apically-dominant steady-state
     start_initial_condition = [1] * (Nx*3) + [0]*Nx
     task_hom = [(MODELS.PAR3ADD, {**params,
-        "Nx": Nx,
-        "tL": tL, "v_func": v_func_zero,
-        "initial_condition": start_initial_condition,
-        "label": "par3add_get_a_dominant_ss"
-        })]
+                                  "Nx": Nx,
+                                  "tL": tL, "v_func": v_func_zero,
+                                  "initial_condition": start_initial_condition,
+                                  "label": "par3add_get_a_dominant_ss"
+                                  })]
     res_hom = model_task_handler.load_or_run("par3add_get_dominant_ss", task_hom)[0]
-    initial_condition = res_hom[1].y[:,-1]
+    initial_condition = res_hom[1].y[:, -1]
 
     # run to polarise
     task_emergence = [(MODELS.PAR3ADD, {**params,
-        "Nx": Nx,
-        "tL": tL,
-        "t_eval": plot_times,
-        "initial_condition": initial_condition,
-        "label": "par3add_emergence"
-        })]
+                                        "Nx": Nx,
+                                        "tL": tL,
+                                        "t_eval": plot_times,
+                                        "initial_condition": initial_condition,
+                                        "label": "par3add_emergence"
+                                        })]
     res_emg = model_task_handler.load_or_run("par3add_emergence", task_emergence)[0]
 
     # plot
@@ -93,24 +94,26 @@ def main():
         ax.plot(res_emg[2]["X"], J, label=figure_helper.par3add_labels[0],
                 color=figure_helper.par3add_colours[0],
                 linewidth=figure_helper.line_width,
-               )
+                )
         ax.plot(res_emg[2]["X"], M, label=figure_helper.par3add_labels[1],
                 color=figure_helper.par3add_colours[1],
                 linewidth=figure_helper.line_width,
-               )
+                )
         ax.plot(res_emg[2]["X"], A, label=figure_helper.par3add_labels[2],
                 color=figure_helper.par3add_colours[2],
                 linewidth=figure_helper.line_width,
-               )
+                )
         ax.plot(res_emg[2]["X"], P, label=figure_helper.par3add_labels[3],
                 color=figure_helper.par3add_colours[3],
                 linewidth=figure_helper.line_width,
-               )
+                )
 
         ax.tick_params(which="both", labelsize=figure_helper.font_size)
         ax.set_title(f"t={plot_times[i]}", fontsize=figure_helper.font_size)
-        ax.text(0.05, 1.02, ["A","B","C","D"][i], transform=ax.transAxes, ha="center", fontsize=figure_helper.font_size)
-        ax.text(0.9, 1.02, f"p={metric_functions.polarity_measure(res_emg[2]["X"], M+A, P, Nx):.2f}",
+        ax.text(0.05, 1.02, ["A", "B", "C", "D"][i],
+                transform=ax.transAxes, ha="center", fontsize=figure_helper.font_size)
+        ax.text(0.9, 1.02,
+                f"p={metric_functions.polarity_measure(res_emg[2]["X"], M+A, P, Nx):.2f}",
                 transform=ax.transAxes, ha="center", fontsize=figure_helper.label_font_size)
         ax.set_xlabel(figure_helper.xlabel, fontsize=figure_helper.font_size)
 
@@ -119,10 +122,9 @@ def main():
     plt.xticks([0, 70])
     plt.yticks([0, 1, 2, 3, 4])
 
-    fig.set_size_inches(15,3)
+    fig.set_size_inches(15, 3)
     plt.savefig("emergence_par3add_timeline.pdf", bbox_inches="tight")
-    
-    
+
     plt.show()
 
 

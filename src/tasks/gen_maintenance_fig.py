@@ -49,7 +49,8 @@ def main():
     all_res = model_task_handler.load_or_run("maintenance_both_models", tasks)
 
     for res in all_res:
-        fig, axs = plt.subplots(nrows=1, ncols=len(plot_times), sharex=True, sharey=True)
+        fig, axs = plt.subplots(nrows=1, ncols=len(plot_times),
+                                sharex=True, sharey=True)
 
         for i in range(len(plot_times)):
             ax = axs[i]
@@ -97,16 +98,16 @@ def main():
                                                             res[1].y[Nx:2*Nx, i]+res[1].y[2*Nx:3*Nx, i],
                                                             res[1].y[3*Nx:, i],
                                                             Nx)
-            
+
             ax.tick_params(which="both", labelsize=figure_helper.font_size)
             ax.set_title(f"t={plot_times[i]}", fontsize=figure_helper.font_size)
             # ax.text(0.05, 1.02, ["A","B","C","D"][i], transform=ax.transAxes, ha="center", fontsize=figure_helper.font_size)
             ax.text(0.9, 1.02, f"p={p_m:.2f}",
                     transform=ax.transAxes, ha="center", fontsize=figure_helper.label_font_size)
-            ax.set_xlabel("x", fontsize=figure_helper.font_size)
-
+            ax.set_xlabel(figure_helper.xlabel, fontsize=figure_helper.font_size)
 
         axs[0].legend(loc="upper left", fontsize=figure_helper.label_font_size, borderaxespad=1.5)
+        axs[0].set_ylabel(figure_helper.ylabel, fontsize=figure_helper.font_size)
         plt.xticks([0, 70])
         plt.yticks([0, 1, 2, 3, 4])
 
