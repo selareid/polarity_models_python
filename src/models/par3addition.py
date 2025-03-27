@@ -312,16 +312,9 @@ def plot_variation_sets(variation_sets, label=DEFAULT_PARAMETERS["label"], x_axi
 
 # plot combined A,M,J (aPars)
 
-def animate_plot_apar_combo(sol, kvals: dict, save_file=False, file_code: str = None, rescale=False):
+def animate_plot_apar_combo(sol, kvals: dict, save_file=False, file_code: str = None, rescale=False, no_par3=False):
     if file_code is None:
         file_code = f'{time.time_ns()}'[5:]
-
-    # rescale so maximal protein quantity is 1
-    # TODO
-    # scalar = 1 if not rescale else np.max(sol.y)
-    # v_rescale_for_visibility = np.max(sol.y)/scalar * 10  # rescale so 0.1 is equal to max protein quantity in the plotting of v
-    scalar = 1
-    v_rescale_for_visibility = 1
 
     Nx = kvals["Nx"]
     # J = U[:Nx]
@@ -329,10 +322,15 @@ def animate_plot_apar_combo(sol, kvals: dict, save_file=False, file_code: str = 
     # A = U[2 * Nx:3 * Nx]
     # P = U[3 * Nx:]
 
-    combined_apar = (sol.y[:Nx, 0] + sol.y[Nx:2*Nx, 0] + sol.y[2*Nx:3*Nx, 0])
+    combined_apar = []
+
+    for i in np.arange(0,len(sol.t)):
+        combined_apar.append((sol.y[Nx:2*Nx, i] + sol.y[2*Nx:3*Nx, i]) if no_par3 else (sol.y[:Nx, i]) + sol.y[Nx:2*Nx, i] + sol.y[2*Nx:3*Nx, i])
+    scalar = 1 if not rescale else np.max(sol.y)
+    v_rescale_for_visibility = np.maximum(np.max(sol.y), np.max(combined_apar[0]))/scalar * 10  # rescale so 0.1 is equal to max protein quantity in the plotting of v
 
     fig, ax = plt.subplots()
-    line1, = ax.plot(kvals["X"], combined_apar/scalar, label="anterior", color="green")
+    line1, = ax.plot(kvals["X"], combined_apar[0]/scalar, label="anterior", color="green")
     line2, = ax.plot(kvals["X"], sol.y[3*Nx:, 0]/scalar, label="posterior", color="orange")
     p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, 0], sol.y[3*Nx:, 0], Nx)  # polarisation metric
     time_label = ax.text(0.1, 1.05, f"t={sol.t[0]} p={p_m:.4f}", transform=ax.transAxes, ha="center")
@@ -340,14 +338,15 @@ def animate_plot_apar_combo(sol, kvals: dict, save_file=False, file_code: str = 
 
     ax.text(0.7, 1.05, kvals["label"] + ";Nx:" + str(Nx), transform=ax.transAxes, ha="center")
 
-    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y)/scalar-0.05,np.max(sol.y)/scalar+0.05], xlabel="x", ylabel="par3,A/P")
+    maxy = np.maximum(np.max(sol.y), np.max(combined_apar));
+
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y)/scalar-0.05,maxy/scalar+0.05], xlabel="x", ylabel="par3,A/P")
     ax.legend()
+    ax.set_title("apar combo, plot without par3" if no_par3 else "apar combo")
 
     def animate(t_i):
-        combined_apar = sol.y[:Nx, t_i] + sol.y[Nx:2*Nx, t_i] + sol.y[2*Nx:3*Nx, t_i]
-
         linev.set_ydata([v_rescale_for_visibility*kvals["v_func"](kvals, x, sol.t[t_i]) for x in kvals["X"]])
-        line1.set_ydata(combined_apar/scalar)
+        line1.set_ydata(combined_apar[t_i]/scalar)
         line2.set_ydata(sol.y[3*Nx:, t_i]/scalar)
         p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, t_i], sol.y[3*Nx:, t_i], Nx)
         time_label.set_text(f"t={sol.t[t_i]:.2f} p={p_m:.4f}")
@@ -376,6 +375,18 @@ def plot_final_timestep_apar_combo(sol, kvals, rescale=False):
 
     ax.plot(kvals["X"], combined_apar / scalar, label="anterior", color="green")
     ax.plot(kvals["X"], sol.y[3 * Nx:, -1] / scalar, label="posterior", color="orange")
+
+    p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, -1], sol.y[3*Nx:, -1], Nx)
+    ax.text(0.1, 1.05, f"t={sol.t[-1]},p={p_m:.4f}", transform=ax.transAxes, ha="center")  # time value
+    ax.plot(kvals["X"], [kvals["v_func"](kvals, x, sol.t[-1]) for x in kvals["X"]], label="v", linestyle="--", color="black")  # v_func
+
+    ax.text(0.7, 1.05, kvals["label"], transform=ax.transAxes, ha="center")
+    ax.set_title("apar combo")
+
+    ax.legend()
+
+    plt.show(block=False)
+
 
     p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, -1], sol.y[3*Nx:, -1], Nx)
     ax.text(0.1, 1.05, f"t={sol.t[-1]},p={p_m:.4f}", transform=ax.transAxes, ha="center")  # time value
