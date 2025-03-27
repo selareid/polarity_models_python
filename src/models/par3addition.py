@@ -362,13 +362,11 @@ def animate_plot_apar_combo(sol, kvals: dict, save_file=False, file_code: str = 
     plt.show(block=False)
 
 
-def plot_final_timestep_apar_combo(sol, kvals, rescale=False):
+def plot_final_timestep_apar_combo(sol, kvals):
     plt.figure()
     ax = plt.subplot()
 
     Nx = kvals["Nx"]
-    # TODO
-    # scalar = 1 if not rescale else np.max(sol.y)
     scalar = 1
 
     combined_apar = (sol.y[:Nx, -1] + sol.y[Nx:2*Nx, -1] + sol.y[2*Nx:3*Nx, -1])
