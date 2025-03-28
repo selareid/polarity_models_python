@@ -1,5 +1,5 @@
 # Polarity Models Python
-Code to run various polarity models. Requires Python 3.10 or later.
+Code to run various polarity models. Requires Python 3.11 or later.
 
 Models contained in `src/models/`.
 Code to run models in `src/tasks/`.
