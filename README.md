@@ -20,6 +20,8 @@ Figures are blocked from displaying and a file is saved with the relevant figure
 
 The file `src/figure_helper.py` is used for commonly used colours and labels across figures.
 
+The task `run_example` outlines the general way to run the new four-equation polarity model and how to change parameters.
+
 Note that generated savedata filenames are not necessarily unique. It is possible that a change to initial condition or parameters might not change the filename. Be suspicious if you change something and it doesn't rerun the simulation.
 
 ## Dependencies
