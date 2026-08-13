@@ -17,23 +17,12 @@ def v_func_zero(kvals, x, t):
 
 
 # task format is tuples like (model, args) in a list
-# TASKS = [(MODELS.TOSTEVIN, {"points_per_second": 0.1, "tL": 1000, "Nx":100, "initial_condition":[0]*200})]
-
-# TASKS = [(MODELS.TOSTEVIN, {"points_per_second": 1, "tL": 1000, "sort": 0.25, "Nx": 100}),
-#     (MODELS.TOSTEVIN, {"label": "Dm=0.1", "points_per_second": 1, "tL": 1000, "Dm": 0.1, "sort": 0.1, "Nx": 100}),
-#     (MODELS.TOSTEVIN, {"label": "Dm=0.2", "points_per_second": 1, "tL": 1000, "Dm": 0.2, "sort": 0.2, "Nx": 100}),
-#     (MODELS.TOSTEVIN, {"label": "Dm=0.4", "points_per_second": 1, "tL": 1000, "Dm": 0.4, "sort": 0.4, "Nx": 100}),
-#     (MODELS.TOSTEVIN, {"label": "Dm=0.5", "points_per_second": 1, "tL": 1000, "Dm": 0.5, "sort": 0.5, "Nx": 100}),
-#     (MODELS.TOSTEVIN, {"label": "Dm=1", "points_per_second": 1, "tL": 1000, "Dm": 1, "sort": 1, "Nx": 100}),
-#     (MODELS.TOSTEVIN, {"label": "Dm=2.5", "points_per_second": 1, "tL": 1000, "Dm": 2.5, "sort": 2.5, "Nx": 100}),
-#     (MODELS.TOSTEVIN, {"label": "Dm=5", "points_per_second": 1, "tL": 1000, "Dm": 5, "sort": 5, "Nx": 100}),
-#     (MODELS.TOSTEVIN, {"label": "Dm=10", "points_per_second": 1, "tL": 1000, "Dm": 10, "sort": 10, "Nx": 100}),]
-
 # TASKS = [(MODELS.GOEHRING, {"points_per_second": 1, "tL": 1000, "Nx": 100}),]
 
 Nx=100
-TASKS = [(MODELS.GOEHRING, {"points_per_second": 3, "tL": 1, "Nx":100, "initial_condition": [0] * (Nx // 2) + [1] * (Nx - Nx // 2) + [1] * (Nx // 2) + [0] * (Nx - Nx // 2),
-    "label":"maintenance IC", "v_func": v_func_zero})]
+TASKS = [(MODELS.GOEHRING, {"points_per_second": 3, "tL": 1, "Nx":100, 
+                            "initial_condition": [0] * (Nx // 2) + [1] * (Nx - Nx // 2) + [1] * (Nx // 2) + [0] * (Nx - Nx // 2),
+                            "label":"maintenance IC", "v_func": v_func_zero})]
 
 
 
@@ -73,15 +62,8 @@ if __name__ == '__main__':
 
     ### Below Outputs Final Timestep for All Solutions ###
     # it makes some assumptions about the input e.g. all same shape for time/space, that all inputs are relevant, ...
-    ### For tostevin
-    # model_module = model_to_module(MODELS.TOSTEVIN)
-    # model_module.plot_multi_final_timestep(sol_list, kvals_list, plot_Ac=False,plot_Pm=False,plot_Pc=False)
-    # model_module.plot_multi_final_timestep(sol_list, kvals_list, plot_Am=False,plot_Pm=False,plot_Pc=False)
-    # model_module.plot_multi_final_timestep(sol_list, kvals_list, plot_Am=False,plot_Ac=False,plot_Pc=False)
-    # model_module.plot_multi_final_timestep(sol_list, kvals_list, plot_Am=False,plot_Ac=False,plot_Pm=False)
-    # model_module.plot_multi_final_timestep(sol_list, kvals_list)
     ### For goehring
-    # model_module = model_to_module(MODELS.TOSTEVIN)
+    # model_module = model_to_module(MODELS.GOEHRING)
     # model_module.plot_multi_final_timestep(sol_list, kvals_list)
 
 

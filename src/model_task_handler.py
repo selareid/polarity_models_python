@@ -18,6 +18,8 @@ def worker(input, output):
 
 # Output of form [(model, sol, kvals),...]
 def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5), callback=None) -> list[tuple]:
+# def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=8, callback=None) -> list[tuple]:
+
     assert NUMBER_OF_PROCESSES >= 1
     assert cpu_count() >= NUMBER_OF_PROCESSES
 
