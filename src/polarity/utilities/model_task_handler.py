@@ -1,8 +1,12 @@
 import copy
 import time
 from multiprocessing import Process, Queue, cpu_count
-from .models import model_to_module
 import numpy as np
+
+from polarity.model_enums import model_to_module
+
+from pathlib import Path
+DATA_DIR = Path(__file__).resolve().parents[3] / "results"
 
 
 def worker(input, output):
@@ -70,7 +74,7 @@ def load_or_run(name: str, tasks: list[tuple], force_run=False) -> list[tuple]:
         if force_run:
             raise Exception("force_run=True")
         
-        loaded_data = np.load("./savedata/"+filename+".npy", allow_pickle=True)
+        loaded_data = np.load( DATA_DIR / f"{filename}.npy", allow_pickle=True)
         print(f"Loading of {name} succeeded!")
         return loaded_data
     except Exception as e:
@@ -78,7 +82,7 @@ def load_or_run(name: str, tasks: list[tuple], force_run=False) -> list[tuple]:
         res = run_tasks_parallel(tasks)
 
         print("Saving results")
-        np.save("./savedata/"+filename+".npy", res, allow_pickle=True)
+        np.save( DATA_DIR / f"{filename}.npy", res, allow_pickle=True)
 
         return res
 

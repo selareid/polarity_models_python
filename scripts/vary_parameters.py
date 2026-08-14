@@ -3,8 +3,9 @@ import os
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import numpy as np
 from matplotlib import pyplot as plt
-from models import MODELS, model_to_module
-import model_task_handler
+
+from polarity.model_enums import MODELS, model_to_module
+from polarity.utilities import model_task_handler
 
 def a_func(kvals, lt, x): return 0
 def v_func_old(kvals, x, t):

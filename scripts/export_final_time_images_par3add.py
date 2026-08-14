@@ -3,11 +3,11 @@
 # ffmpeg can stitch these together to get video of end state as parameter value changes
 # Can use command >ffmpeg -framerate 3/1 -i %d.png output.mp4
 
-from ..models import MODELS, model_to_module
-from src.tasks import variation_task_helper
 import matplotlib
 from matplotlib import pyplot as plt
-from src import figure_helper
+
+from polarity.utilities import figure_helper, variation_task_helper
+from polarity.model_enums import MODELS, model_to_module
 
 
 def v_func_zero(kvals, x, t):

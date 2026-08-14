@@ -6,10 +6,10 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import matplotlib
 from matplotlib import pyplot as plt
-from src import model_task_handler
-from ..models import MODELS, metric_functions
 import numpy as np
-from src import figure_helper
+
+from polarity.utilities import model_task_handler, metric_functions, figure_helper
+from polarity.model_enums import MODELS
 
 
 def v_func_zero(kvals, x, t):
@@ -139,7 +139,7 @@ def plot_panels(res_to_plot: list, colour=str):
     plt.yticks([0, 1, 2, 3, 4])
 
     fig.set_size_inches(16 if len(res_to_plot) < 4 else 20, 4)
-    plt.savefig(f"gen_downregulation_scribble_and_pkc_{colour}.pdf", bbox_inches="tight")
+    plt.savefig(figure_helper.FIGURES_DIR / f"gen_downregulation_scribble_and_pkc_{colour}.pdf", bbox_inches="tight")
 
 
 def plot_all_variations(res_by_rhoA, panelled_res_list):
@@ -185,7 +185,7 @@ def plot_all_variations(res_by_rhoA, panelled_res_list):
     plt.xlabel(r"$\rho_P$")
     plt.ylabel(r"$\rho_A$")
 
-    plt.savefig("gen_downregulation_scribble_and_pkc_grid.pdf", bbox_inches="tight")
+    plt.savefig(figure_helper.FIGURES_DIR / "gen_downregulation_scribble_and_pkc_grid.pdf", bbox_inches="tight")
 
 
 def get_tasks():

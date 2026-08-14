@@ -5,9 +5,9 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import matplotlib
 from matplotlib import pyplot as plt
-from src import model_task_handler
-from ..models import MODELS, model_to_module, metric_functions
-from src import figure_helper
+
+from polarity.utilities import model_task_handler, metric_functions, figure_helper
+from polarity.model_enums import MODELS, model_to_module
 
 
 def v_func_zero(kvals, x, t):
@@ -123,7 +123,7 @@ def main():
     plt.yticks([0, 1, 2, 3, 4])
 
     fig.set_size_inches(15, 3)
-    plt.savefig("emergence_par3add_timeline.pdf", bbox_inches="tight")
+    plt.savefig(figure_helper.FIGURES_DIR / "emergence_par3add_timeline.pdf", bbox_inches="tight")
 
     plt.show()
 

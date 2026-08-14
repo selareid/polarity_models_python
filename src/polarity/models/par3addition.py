@@ -5,7 +5,8 @@ import numpy as np
 from matplotlib import pyplot as plt, animation
 from scipy import integrate
 
-from src.models.metric_functions import polarity_measure, orientation_marker, polarity_orientation, polarity_get_all
+from polarity.utilities.figure_helper import FIGURES_DIR
+from polarity.utilities.metric_functions import polarity_measure, orientation_marker, polarity_orientation, polarity_get_all
 
 
 def default_v_func(kvals, x, t):
@@ -229,7 +230,7 @@ def animate_plot(sol, kvals: dict, save_file=False, file_code: str = None, resca
     ani = animation.FuncAnimation(fig, animate, interval=10000/len(sol.t), blit=True, frames=len(sol.t))
 
     if save_file:
-        file_name = f"{file_code}_spatialPar.mp4"
+        file_name = FIGURES_DIR / f"{file_code}_spatialPar.gif"
         print(f"Saving animation to {file_name}")
         ani.save(file_name)
 
@@ -355,7 +356,7 @@ def animate_plot_apar_combo(sol, kvals: dict, save_file=False, file_code: str = 
     ani = animation.FuncAnimation(fig, animate, interval=10000/len(sol.t), blit=True, frames=len(sol.t))
 
     if save_file:
-        file_name = f"{file_code}_spatialPar.mp4"
+        file_name = figure_helper.FIGURES_DIR / f"{file_code}_spatialPar.gif"
         print(f"Saving animation to {file_name}")
         ani.save(file_name)
 

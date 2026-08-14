@@ -5,9 +5,9 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import matplotlib
 from matplotlib import pyplot as plt
-from src import model_task_handler
-from ..models import MODELS, metric_functions
-from src import figure_helper
+
+from polarity.utilities import model_task_handler, metric_functions, figure_helper
+from polarity.model_enums import MODELS
 
 
 def v_func_zero(kvals, x, t):
@@ -89,7 +89,7 @@ def main():
     plt.xticks([0, 70])
     plt.yticks([0, 1, 2, 3, 4])
     fig.set_size_inches(16,4)
-    plt.savefig("polarisation_metric_illustration_fig.pdf", bbox_inches="tight")
+    plt.savefig(figure_helper.FIGURES_DIR / "polarisation_metric_illustration_fig.pdf", bbox_inches="tight")
 
     plt.show()
 

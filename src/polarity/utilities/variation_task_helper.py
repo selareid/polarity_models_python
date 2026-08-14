@@ -1,9 +1,10 @@
 # Helper code for varying a bunch of parameters
 
 import numpy as np
-from src import model_task_handler
-from src.models import MODELS, model_to_module, model_to_string
 from multiprocessing import cpu_count
+
+from polarity.utilities import model_task_handler
+from polarity.model_enums import MODELS, model_to_module, model_to_string
 
 # standard variation multipliers
 def get_variation_multiplier(option=None):
@@ -134,13 +135,13 @@ def save_runs(filename, tasks, baseline, results_by_variable):
         "results_by_variable": results_by_variable
         }
 
-    np.save("./savedata/"+filename, save_data, allow_pickle=True)
+    np.save( model_task_handler.DATA_DIR / f"{filename}.npy", save_data, allow_pickle=True)
     
 
 
 def load_runs(filename):
     try:
-        loaded_data = np.load("./savedata/"+filename+".npy", allow_pickle=True)
+        loaded_data = np.load( model_task_handler.DATA_DIR / f"{filename}.npy", allow_pickle=True)
         loaded_data = loaded_data.item()
 
         return [True, loaded_data["baseline"], loaded_data["results_by_variable"]]

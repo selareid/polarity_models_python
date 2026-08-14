@@ -8,12 +8,10 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import time
 import matplotlib
 from matplotlib import pyplot as plt, animation
-from src import model_task_handler
-from src.tasks import variation_task_helper
-from ..models import MODELS, model_to_module, metric_functions
 import numpy as np
-from src import figure_helper
 
+from polarity.utilities import model_task_handler, variation_task_helper, figure_helper, metric_functions
+from polarity.model_enums import MODELS, model_to_module
 
 def v_func_zero(kvals, x, t):
     return 0
@@ -513,7 +511,7 @@ def comparison_animation(pol_goehring_sol, pol_goehring_kvals, pol_par3add_sol, 
     ani = animation.FuncAnimation(fig, animate, interval=10000/len(pol_par3add_sol.t), blit=True, frames=len(pol_par3add_sol.t))
 
     if save_file:
-        file_name = f"{file_code}_compare.mp4"
+        file_name = figure_helper.FIGURES_DIR / f"{file_code}_compare.gif"
         print(f"Saving animation to {file_name}")
         ani.save(file_name)
     else:
@@ -628,7 +626,7 @@ def plot_comparison_t0_tl(pol_goehring_sol, pol_goehring_kvals, pol_par3add_sol,
     plt.yticks([0, 1, 2, 3, 4])
 
     fig.set_size_inches(16,6)
-    plt.savefig("emergence_compare_par3add_goehring_t0_tL.pdf", bbox_inches="tight")
+    plt.savefig(figure_helper.FIGURES_DIR / "emergence_compare_par3add_goehring_t0_tL.pdf", bbox_inches="tight")
 
 
 if __name__ == '__main__':

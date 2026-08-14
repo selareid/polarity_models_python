@@ -1,14 +1,14 @@
-# generate illustration scribble downregulation (via koffP), secretory phase
+# generate illustration scribble downregulation (via rhoP), secretory phase
 
 import os
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import matplotlib
 from matplotlib import pyplot as plt
-from src import model_task_handler
-from ..models import MODELS, model_to_module, metric_functions
 import numpy as np
-from src import figure_helper
+
+from polarity.utilities import model_task_handler, metric_functions, figure_helper
+from polarity.model_enums import MODELS, model_to_module
 
 
 def v_func_zero(kvals, x, t):
@@ -21,7 +21,7 @@ Module_Par3Add = model_to_module(MODELS.PAR3ADD)
 def main():
     Nx = 100
 
-    plot_times = [0, 40000]
+    plot_times = [0, 20000]
 
     initial_condition_1 = np.array([0]*(Nx//2) + [1.1]*(Nx-Nx//2)
                                    + [0]*(Nx//2) + [1.5]*(Nx-Nx//2)
@@ -41,16 +41,16 @@ def main():
                                "tL": plot_times[-1],
                                "t_eval": plot_times,
                                "initial_condition": initial_condition_2,
-                               "label": "koffP=0.032 par3add maintenance",
-                               "koffP": 0.032,
+                               "label": "rho_P=0.61 par3add maintenance",
+                               "rho_P": 0.61,
                               }),
              (MODELS.PAR3ADD, {"Nx": Nx,
                                "v_func": v_func_zero,
                                "tL": plot_times[-1],
                                "t_eval": plot_times,
                                "initial_condition": initial_condition_2,
-                               "label": "koffP=0.033 par3add maintenance",
-                               "koffP": 0.033,
+                               "label": "rho_P=0.60 par3add maintenance",
+                               "rho_P": 0.60,
                               }),
             ]
 
@@ -94,7 +94,7 @@ def main():
                )
 
         ax.tick_params(which="both", labelsize=figure_helper.font_size)
-        ax.set_title(r"$k_{\text{off},P}$"+f"={[res_baseline[2]['koffP'], res[2]['koffP']][i]}"+r" $\text{μm}^{-3}$", fontsize=figure_helper.font_size)
+        ax.set_title(rf"$\rho_P$={[res_baseline[2]['rho_P'], res[2]['rho_P']][i]}"+r" $\text{μm}^{-3}$", fontsize=figure_helper.font_size)
         # ax.text(0.05, 1.02, ["A","B","C","D"][i], transform=ax.transAxes, ha="center", fontsize=figure_helper.font_size)
         ax.text(0.9, 1.02, f"p={metric_functions.polarity_measure(res[2]["X"], M+A, P, Nx):.2f}",
                 transform=ax.transAxes, ha="center", fontsize=figure_helper.label_font_size)
@@ -108,7 +108,7 @@ def main():
 
     # fig.set_size_inches(16,6)
     fig.set_size_inches(16,4)
-    plt.savefig(f"scribble_downreg_fig_{res[0]}_koffp.pdf", bbox_inches="tight")
+    plt.savefig(figure_helper.FIGURES_DIR / f"scribble_downreg_fig_{res[0]}_rhop.pdf", bbox_inches="tight")
     
     plt.show()
 

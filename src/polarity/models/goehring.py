@@ -4,8 +4,9 @@ from typing import Callable
 import numpy as np
 from matplotlib import pyplot as plt, animation
 from scipy import integrate
-from .metric_functions import polarity_measure, polarity_orientation, orientation_marker
 
+from polarity.utilities.metric_functions  import polarity_measure, polarity_orientation, orientation_marker
+from polarity.utilities.figure_helper import FIGURES_DIR
 
 def default_v_func(kvals, x, t):
     v_time = 600
@@ -177,7 +178,7 @@ def animate_plot(sol, kvals: dict, save_file=False, file_code: str = None, resca
     ani = animation.FuncAnimation(fig, animate, interval=5000/len(sol.t), blit=True, frames=len(sol.t))
 
     if save_file:
-        file_name = f"{file_code}_spatialPar.mp4"
+        file_name = FIGURES_DIR / f"{file_code}_spatialPar.gif"
         print(f"Saving animation to {file_name}")
         ani.save(file_name)
 

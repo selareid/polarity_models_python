@@ -7,8 +7,9 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 import numpy as np
 from matplotlib import pyplot as plt
-from src.tasks import variation_task_helper as t_helper
-from ..models import MODELS, model_to_module
+
+from polarity.utilities import variation_task_helper as t_helper
+from polarity.model_enums import MODELS, model_to_module
 
 MODULE_GOEHRING = model_to_module(MODELS.GOEHRING)
 

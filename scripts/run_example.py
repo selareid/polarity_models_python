@@ -5,8 +5,8 @@
 # import os
 # os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
-from src import model_task_handler
-from ..models import MODELS, model_to_module
+from polarity.utilities import model_task_handler
+from polarity.model_enums import MODELS, model_to_module
 
 model_module = model_to_module(MODELS.PAR3ADD)
 

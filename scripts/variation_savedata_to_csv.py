@@ -3,8 +3,9 @@
 # -1 in polarity marks 'FAILED' run
 
 import numpy as np
-from src.tasks import variation_task_helper as t_helper
-from src.models.metric_functions import polarity_measure
+
+from polarity.utilities import variation_task_helper as t_helper
+from polarity.utilities.metric_functions import polarity_measure
 
 
 # need this for data loading

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "endometrial-polarity-model"
+version = "0.1.0"
+description = "Model code for Paper `A mathematical model of epithelial apico-basal polarisation, and application to the endometrial cell polaristion cycle'."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.2.3",
+    "scipy>=1.15.2",
+    "matplotlib>=3.10.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -8,10 +8,11 @@ os.environ['OPENBLAS_NUM_THREADS'] = '1'
 import time
 import numpy as np
 from numpy import linalg
-from ..models import MODELS, model_to_module
 import matplotlib
 from matplotlib import pyplot as plt
-from src import model_task_handler
+
+from polarity.utilities import model_task_handler
+from polarity.model_enums import MODELS, model_to_module
 
 
 MODULE_PAR3ADD = model_to_module(MODELS.PAR3ADD)

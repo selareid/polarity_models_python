@@ -1,7 +1,8 @@
 # Universal thing for figures
 # ordering for par3add elements is [J, M, A, P]
 # for goehring the ordering is just [A, P]
-
+from pathlib import Path
+FIGURES_DIR = Path(__file__).resolve().parents[3] / "figures"
 
 font_size = 17
 label_font_size = 12

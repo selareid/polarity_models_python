@@ -1,5 +1,5 @@
 from enum import Enum
-from . import goehring, par3addition
+from polarity.models import goehring, par3addition
 
 
 class MODELS(Enum):

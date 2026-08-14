@@ -6,11 +6,12 @@
 import os
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
-from src import model_task_handler
 import matplotlib
 from matplotlib import pyplot as plt
-from ..models import MODELS, model_to_module
 import copy
+
+from polarity.utilities import model_task_handler
+from polarity.model_enums import MODELS, model_to_module
 
 
 def v_func_zero(kvals, x, t):
