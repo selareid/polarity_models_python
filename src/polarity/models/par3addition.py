@@ -1,8 +1,6 @@
 # Expansion on the existing model by Goehring et al. 2011 in order to better represent the endometrial epithelia
-import time
 from typing import Callable
 import numpy as np
-from matplotlib import pyplot as plt, animation
 from scipy import integrate
 
 

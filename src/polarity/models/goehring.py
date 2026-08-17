@@ -2,7 +2,6 @@
 # import time
 from typing import Callable
 import numpy as np
-from matplotlib import pyplot as plt, animation
 from scipy import integrate
 
 def default_v_func(kvals, x, t):

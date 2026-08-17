@@ -4,7 +4,11 @@
 from pathlib import Path
 import numpy as np
 from pandas import DataFrame, concat
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, animation
+from dataclasses import is_dataclass, asdict
+
+from polarity.model_enums import MODELS
+# from polarity.utilities.metric_functions import polarity_measure
 
 FIGURES_DIR = Path(__file__).resolve().parents[3] / "figures"
 
@@ -108,52 +112,48 @@ def format_param_label_math(label: str) -> str:
 
 
 
-# # Plotting
-# def animate_plot(sol, kvals: dict, save_file=False, file_code: str = None, rescale=False):
-#     if file_code is None:
-#         file_code = f'{time.time_ns()}'[5:]
+def animate_plot(sol, kvals, model: MODELS, save_file:str = None, rescale=False):
 
-#     # rescale so maximal protein quantity is 1
-#     scalar = 1 if not rescale else np.max(sol.y)
-#     v_rescale_for_visibility = np.max(sol.y)/scalar * 10  # rescale so 0.1 is equal to max protein quantity in the plotting of v
+    if is_dataclass(kvals):
+        kvals = asdict(kvals)
 
-#     Nx = kvals["Nx"]
-#     # J = U[:Nx]
-#     # M = U[Nx:2 * Nx]
-#     # A = U[2 * Nx:3 * Nx]
-#     # P = U[3 * Nx:]
-#     fig, ax = plt.subplots()
-#     line1, = ax.plot(kvals["X"], sol.y[:Nx, 0]/scalar, label="par3", color="green")
-#     line2, = ax.plot(kvals["X"], sol.y[Nx:2*Nx, 0]/scalar, label="par3-PKC", color="purple")
-#     line3, = ax.plot(kvals["X"], sol.y[2*Nx:3*Nx, 0]/scalar, label="cdc42-PKC", color="blue")
-#     line4, = ax.plot(kvals["X"], sol.y[3*Nx:, 0]/scalar, label="posterior", color="orange")
-#     p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, 0], sol.y[3*Nx:, 0], Nx)
-#     time_label = ax.text(0.1, 1.05, f"t={sol.t[0]} p={p_m:.4f}", transform=ax.transAxes, ha="center")
-#     linev, = ax.plot(kvals["X"], [v_rescale_for_visibility*kvals["v_func"](kvals, x, 0) for x in kvals["X"]], label="v", linestyle="--", color="black")
+    # rescale so maximal protein quantity is 1
+    v_rescale_for_visibility = np.max(sol.y) * 10  # rescale so 0.1 is equal to max protein quantity in the plotting of v
 
-#     ax.text(0.7, 1.05, kvals["label"] + ";Nx:" + str(Nx), transform=ax.transAxes, ha="center")
+    Nx = kvals["Nx"]
+    fig, ax = plt.subplots()
+    line1, = ax.plot(kvals["X"], sol.y[:Nx, 0], label="par3", color="green")
+    line2, = ax.plot(kvals["X"], sol.y[Nx:2*Nx, 0], label="par3-PKC", color="purple")
+    line3, = ax.plot(kvals["X"], sol.y[2*Nx:3*Nx, 0], label="cdc42-PKC", color="blue")
+    line4, = ax.plot(kvals["X"], sol.y[3*Nx:, 0], label="posterior", color="orange")
+    # p_m = polarity_measure(kvals["X"], sol.y[:, 0], model)
+    # time_label = ax.text(0.1, 1.05, f"t={sol.t[0]} p={p_m:.4f}", transform=ax.transAxes, ha="center")
+    time_label = ax.text(0.1, 1.05, f"t={sol.t[0]}", transform=ax.transAxes, ha="center")
+    # linev, = ax.plot(kvals["X"], [v_rescale_for_visibility*kvals["v_func"](kvals, x, 0) for x in kvals["X"]], label="v", linestyle="--", color="black")
+    # ax.text(0.7, 1.05, kvals["label"] + ";Nx:" + str(Nx), transform=ax.transAxes, ha="center")
 
-#     ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y)/scalar-0.05,np.max(sol.y)/scalar+0.05], xlabel="x", ylabel="par3,A/P")
-#     ax.legend()
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y)-0.05,np.max(sol.y)+0.05], xlabel="x", ylabel="par3,A/P")
+    ax.legend()
 
-#     def animate(t_i):
-#         linev.set_ydata([v_rescale_for_visibility*kvals["v_func"](kvals, x, sol.t[t_i]) for x in kvals["X"]])
-#         line1.set_ydata(sol.y[:Nx, t_i]/scalar)
-#         line2.set_ydata(sol.y[Nx:2*Nx, t_i]/scalar)
-#         line3.set_ydata(sol.y[2*Nx:3*Nx, t_i]/scalar)
-#         line4.set_ydata(sol.y[3*Nx:, t_i]/scalar)
-#         p_m, _, _ = polarity_get_all(kvals["X"], sol.y[2*Nx:3*Nx, t_i], sol.y[3*Nx:, t_i], Nx)
-#         time_label.set_text(f"t={sol.t[t_i]:.2f} p={p_m:.4f}")
-#         return (line1, line2, line3, line4, linev, time_label)
+    def animate(t_i):
+        # linev.set_ydata([v_rescale_for_visibility*kvals["v_func"](kvals, x, sol.t[t_i]) for x in kvals["X"]])
+        line1.set_ydata(sol.y[:Nx, t_i])
+        line2.set_ydata(sol.y[Nx:2*Nx, t_i])
+        line3.set_ydata(sol.y[2*Nx:3*Nx, t_i])
+        line4.set_ydata(sol.y[3*Nx:, t_i])
+        # p_m = polarity_measure(kvals["X"], sol.y[:, t_i], model)
+        time_label.set_text(f"t={sol.t[t_i]:.2f}")# p={p_m:.4f}")
+        # return (line1, line2, line3, line4, linev, time_label)
+        return (line1, line2, line3, line4, time_label)
 
-#     ani = animation.FuncAnimation(fig, animate, interval=10000/len(sol.t), blit=True, frames=len(sol.t))
+    ani = animation.FuncAnimation(fig, animate, interval=10000/len(sol.t), blit=True, frames=len(sol.t))
 
-#     if save_file:
-#         file_name = FIGURES_DIR / f"{file_code}_spatialPar.gif"
-#         print(f"Saving animation to {file_name}")
-#         ani.save(file_name)
+    if save_file is not None:
+        file_name = FIGURES_DIR / f"{save_file}.gif"
+        print(f"Saving animation to {file_name}")
+        ani.save(file_name)
 
-#     plt.show(block=False)
+    plt.show(block=False)
 
 
 # def plot_final_timestep(sol, kvals, rescale=False):
