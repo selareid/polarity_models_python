@@ -1,6 +1,7 @@
 # Expansion on the existing model by Goehring et al. 2011 in order to better represent the endometrial epithelia
-from typing import Callable
+from typing import Callable, Optional
 import numpy as np
+from dataclasses import dataclass, field
 from scipy import integrate
 
 
@@ -8,101 +9,121 @@ def default_v_func(kvals, x, t):
     v_time = 600
     time_factor = 1 / np.maximum(1, t / 10 - v_time / 10)
 
-    center = kvals["xL"] / 4
-    sd = np.minimum(center / 4, (kvals["xL"] - center) / 4)
+    center = kvals.xL / 4
+    sd = np.minimum(center / 4, (kvals.xL - center) / 4)
     peak = 0.1
 
     return time_factor * peak * np.exp(-(x - center) ** 2 / (2 * sd ** 2))
 
 
-Ybar = lambda kvals, Y: 2 * integrate.simpson(Y, x = kvals["X"]) / kvals["L"]  # all of J,A,P-bar
-def J_cyto(kvals, J, M): return kvals["rho_J"] - kvals["psi"] * Ybar(kvals, J) \
-        - kvals["psi"] * Ybar(kvals, M)
-def A_cyto(kvals, A, M): return kvals["rho_A"] - kvals["psi"] * Ybar(kvals, A) \
-        - kvals["psi"] * Ybar(kvals, M)
-def P_cyto(kvals, P): return kvals["rho_P"] - kvals["psi"] * Ybar(kvals, P)
-
-
-DEFAULT_PARAMETERS = {
-    "label": "par3addition",
-    "points_per_second": 0.01,
+@dataclass(frozen=True) # To be safe don't let this be modified after initialisation as could mess with X and deltax
+class Parameters:
+    Species = ["J", "M", "A", "P"]
+    label: str = "par3addition"
 
     # General Setup Variables
-    "Nx": 100,  # number of length steps
-    "L": 134.6,  # length of region
-    "x0": 0,
-    "xL": 67.3,  # L / 2
-    "t0": 0,
-    "tL": 9000,
+    Nx: int = 100  # number of length step
+    L: float = 134.6  # length of region
+    x0: float = 0
+    xL: float = 67.3  # L / 2
+    t0: float = 0
+    tL: float = 9000
+    points_per_second: float = 0.01
 
-    "v_func": default_v_func,
+    v_func: Callable = default_v_func
     
     # Model parameters
-    "psi": 0.174,
+    psi: float = 0.174
 
-    "D_J": 0.28,
-    "D_M": 7.5*10**(-2),
-    "D_A": 0.28,
-    "D_P": 0.15,
+    D_J: float = 0.28
+    D_M: float = 7.5*10**(-2)
+    D_A: float = 0.28
+    D_P: float = 0.15
 
-    "k1": 9.01*10**(-3),
-    "k2": 1.64*10**(-3),
+    k1: float = 9.01*10**(-3)
+    k2: float = 1.64*10**(-3)
 
-    "kJP": 6.16*10**(-2),
-    "kMP": 4.41*10**(-2),
-    "kAP": 4.61*10**(-1),
-    "kPA": 2,
+    kJP: float = 6.16*10**(-2)
+    kMP: float = 4.41*10**(-2)
+    kAP: float = 4.61*10**(-1)
+    kPA: float = 2
 
-    "rho_J": 1.2,
-    "rho_A": 1.56,
-    "rho_P": 1,
+    rho_J: float = 1.2
+    rho_A: float = 1.56
+    rho_P: float = 1
 
-    "konJ": 1.4*10**(-2),
-    "konP": 4.74*10**(-2),
+    konJ: float = 1.4*10**(-2)
+    konP: float = 4.74*10**(-2)
 
-    "koffJ": 1.17*10**(-3),
-    "koffM": 8.44*10**(-3),
-    "koffA": 2.65*10**(-3),
-    "koffP": 7.3*10**(-3),
+    koffJ: float = 1.17*10**(-3)
+    koffM: float = 8.44*10**(-3)
+    koffA: float = 2.65*10**(-3)
+    koffP: float = 7.3*10**(-3)
 
-    "sigmaJ": 1, "sigmaM": 1, "sigmaP": 1,
+    sigmaJ: float = 1
+    sigmaM: float = 1
+    sigmaP: float = 1
 
     # not used in writeup
-    "konA": 0,
-    "alpha": 1, "beta": 2,
-}
+    konA: float = 0
+    alpha: int = 1
+    beta: int = 2
+
+    # Need to do a little bit of processing for some of the parameters
+    X: np.ndarray = field(init = False) # Not set by user
+    deltax: float = field(init = False) # Not set by user
+    initial_condition: Optional[list] = None # Can be set by user, otherwise default is set in post init function
+    t_eval: Optional[np.ndarray] = None # Can be set by user, otherwise default is set in post init function
+
+    def __post_init__(self):
+        # We need to use object.__setattr__ since the dataclass is frozen
+        object.__setattr__(self, 'X', np.linspace(self.x0, self.xL, self.Nx))
+        object.__setattr__(self, 'deltax', np.abs(self.X[1] - self.X[0]))
+        if self.initial_condition is None:
+            object.__setattr__(self, 'initial_condition', ( [1] * (self.Nx*3) + [0]*self.Nx ) )
+        if self.t_eval is None:
+            t_eval = np.linspace(self.t0, self.tL, 
+                                int(self.points_per_second * np.abs(self.tL - self.t0)))
+            object.__setattr__(self, 't_eval', t_eval)
 
 
-def disc_diffusion_term(kvals: dict, Y, x_i):
+Ybar = lambda kvals, Y: 2 * integrate.simpson(Y, x = kvals.X) / kvals.L  # all of J,A,P-bar
+def J_cyto(kvals, J, M): return kvals.rho_J - kvals.psi * Ybar(kvals, J) \
+        - kvals.psi * Ybar(kvals, M)
+def A_cyto(kvals, A, M): return kvals.rho_A - kvals.psi * Ybar(kvals, A) \
+        - kvals.psi * Ybar(kvals, M)
+def P_cyto(kvals, P): return kvals.rho_P - kvals.psi * Ybar(kvals, P)
+
+
+def disc_diffusion_term(kvals: Parameters, Y, x_i):
     # This function accounts for boundary reflection
     if x_i == 0:  # left boundary
-        return (Y[1] - 2 * Y[0] + Y[1]) / kvals["deltax"] ** 2  # reflect Y[-1] to Y[1]
-    elif x_i == kvals["Nx"] - 1:  # right boundary
-        return (Y[kvals["Nx"] - 2] - 2 * Y[kvals["Nx"] - 1] + Y[kvals["Nx"] - 2]) / kvals[
-            "deltax"] ** 2  # reflect Y[Nx] over Nx-1 to Y[Nx-2]
+        return (Y[1] - 2 * Y[0] + Y[1]) / kvals.deltax ** 2  # reflect Y[-1] to Y[1]
+    elif x_i == kvals.Nx - 1:  # right boundary
+        return (Y[kvals.Nx - 2] - 2 * Y[kvals.Nx - 1] + Y[kvals.Nx - 2]) / kvals.deltax ** 2  # reflect Y[Nx] over Nx-1 to Y[Nx-2]
     else:  # internal point
-        return (Y[x_i + 1] - 2 * Y[x_i] + Y[x_i - 1]) / kvals["deltax"] ** 2
+        return (Y[x_i + 1] - 2 * Y[x_i] + Y[x_i - 1]) / kvals.deltax ** 2
 
 
 # where func is a function of type x_i -> float
-def disc_spatial_derivative(kvals: dict, func: Callable[[int], float], x_i):
-    return (func(x_i + 1) - func(x_i)) / kvals["deltax"]
+def disc_spatial_derivative(kvals: Parameters, func: Callable[[int], float], x_i):
+    return (func(x_i + 1) - func(x_i)) / kvals.deltax
 
 
-R_J = lambda kvals, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r: -kvals["k1"]*A_cyto_r*J[x_i] + kvals["k2"]*M[x_i] \
-                                                    + kvals["konJ"]*J_cyto_r - kvals["koffJ"]*J[x_i] \
-                                                    - kvals["kJP"]*P[x_i]**kvals["alpha"]*J[x_i]
-R_M = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals["k1"]*A_cyto_r*J[x_i] - kvals["k2"]*M[x_i] \
-                                                    - kvals["koffM"]*M[x_i] \
-                                                    - kvals["kMP"]*P[x_i]*M[x_i]  # added antagonism
-R_A = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals["k2"]*M[x_i] + kvals["konA"]*A_cyto_r - kvals["koffA"]*A[x_i] \
-                                                    - kvals["kAP"]*P[x_i]*A[x_i]  # added antagonism
-R_P = lambda kvals, J, M, A, P, t, x_i, P_cyto_r: kvals["konP"]*P_cyto_r - kvals["koffP"]*P[x_i] \
-                                                    - kvals["kPA"]*(A[x_i]+M[x_i])**kvals["beta"]*P[x_i]
+R_J = lambda kvals, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r: -kvals.k1*A_cyto_r*J[x_i] + kvals.k2*M[x_i] \
+                                                    + kvals.konJ*J_cyto_r - kvals.koffJ*J[x_i] \
+                                                    - kvals.kJP*P[x_i]**kvals.alpha*J[x_i]
+R_M = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals.k1*A_cyto_r*J[x_i] - kvals.k2*M[x_i] \
+                                                    - kvals.koffM*M[x_i] \
+                                                    - kvals.kMP*P[x_i]*M[x_i]  # added antagonism
+R_A = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals.k2*M[x_i] + kvals.konA*A_cyto_r - kvals.koffA*A[x_i] \
+                                                    - kvals.kAP*P[x_i]*A[x_i]  # added antagonism
+R_P = lambda kvals, J, M, A, P, t, x_i, P_cyto_r: kvals.konP*P_cyto_r - kvals.koffP*P[x_i] \
+                                                    - kvals.kPA*(A[x_i]+M[x_i])**kvals.beta*P[x_i]
 
 
 def odefunc(t, U, kvals):
-    Nx = kvals["Nx"]
+    Nx = kvals.Nx
 
     assert len(U) == 4 * Nx
 
@@ -130,55 +151,41 @@ def odefunc(t, U, kvals):
     # insides
     # diffusion function handles left boundary
     for x_i in np.arange(0, Nx-1):
-        dudt_J[x_i] = kvals["D_J"]*disc_diffusion_term(kvals, J, x_i) \
-                        -kvals["sigmaJ"]*disc_spatial_derivative(kvals, lambda x_ii: kvals["v_func"](kvals, kvals["X"][x_ii], t)*J[x_ii], x_i) \
+        dudt_J[x_i] = kvals.D_J*disc_diffusion_term(kvals, J, x_i) \
+                        -kvals.sigmaJ*disc_spatial_derivative(kvals, lambda x_ii: kvals.v_func(kvals, kvals.X[x_ii], t)*J[x_ii], x_i) \
                         + R_J(kvals, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r)
-        dudt_M[x_i] = kvals["D_M"]*disc_diffusion_term(kvals, M, x_i) \
-                        -kvals["sigmaM"]*disc_spatial_derivative(kvals, lambda x_ii: kvals["v_func"](kvals, kvals["X"][x_ii], t)*M[x_ii], x_i) \
+        dudt_M[x_i] = kvals.D_M*disc_diffusion_term(kvals, M, x_i) \
+                        -kvals.sigmaM*disc_spatial_derivative(kvals, lambda x_ii: kvals.v_func(kvals, kvals.X[x_ii], t)*M[x_ii], x_i) \
                         + R_M(kvals, J, M, A, P, t, x_i, A_cyto_r)
-        dudt_A[x_i] = kvals["D_A"]*disc_diffusion_term(kvals, A, x_i) \
+        dudt_A[x_i] = kvals.D_A*disc_diffusion_term(kvals, A, x_i) \
                         + R_A(kvals, J, M, A, P, t, x_i, A_cyto_r)
-        dudt_P[x_i] = kvals["D_P"]*disc_diffusion_term(kvals, P, x_i) \
-                        -kvals["sigmaP"]*disc_spatial_derivative(kvals, lambda x_ii: kvals["v_func"](kvals, kvals["X"][x_ii], t)*P[x_ii], x_i) \
+        dudt_P[x_i] = kvals.D_P*disc_diffusion_term(kvals, P, x_i) \
+                        -kvals.sigmaP*disc_spatial_derivative(kvals, lambda x_ii: kvals.v_func(kvals, kvals.X[x_ii], t)*P[x_ii], x_i) \
                         + R_P(kvals, J, M, A, P, t, x_i, P_cyto_r)
 
     # manually handle right boundary ( x_i = Nx-1 ) since v(x,t) is odd
     # reflect Nx over Nx-1 to Nx-2; for v_func, also negate on the reflection as v(x)=-v(-x)
     x_i = Nx-1
-    dudt_J[x_i] = kvals["D_J"]*disc_diffusion_term(kvals, J, x_i) \
-                    - (-kvals["v_func"](kvals, kvals["X"][Nx-2], t)*J[Nx-2] - kvals["v_func"](kvals, kvals["X"][Nx-1], t)*J[Nx-1]) / kvals["deltax"] \
+    dudt_J[x_i] = kvals.D_J*disc_diffusion_term(kvals, J, x_i) \
+                    - (-kvals.v_func(kvals, kvals.X[Nx-2], t)*J[Nx-2] - kvals.v_func(kvals, kvals.X[Nx-1], t)*J[Nx-1]) / kvals.deltax \
                     + R_J(kvals, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r)
-    dudt_M[x_i] = kvals["D_M"]*disc_diffusion_term(kvals, M, x_i) \
-                    - (-kvals["v_func"](kvals, kvals["X"][Nx-2], t)*M[Nx-2] - kvals["v_func"](kvals, kvals["X"][Nx-1], t)*M[Nx-1]) / kvals["deltax"] \
+    dudt_M[x_i] = kvals.D_M*disc_diffusion_term(kvals, M, x_i) \
+                    - (-kvals.v_func(kvals, kvals.X[Nx-2], t)*M[Nx-2] - kvals.v_func(kvals, kvals.X[Nx-1], t)*M[Nx-1]) / kvals.deltax \
                     + R_M(kvals, J, M, A, P, t, x_i, A_cyto_r)
-    dudt_A[x_i] = kvals["D_A"]*disc_diffusion_term(kvals, A, x_i) \
+    dudt_A[x_i] = kvals.D_A*disc_diffusion_term(kvals, A, x_i) \
                     + R_A(kvals, J, M, A, P, t, x_i, A_cyto_r)
-    dudt_P[x_i] = kvals["D_P"]*disc_diffusion_term(kvals, P, x_i) \
-                    - (-kvals["v_func"](kvals, kvals["X"][Nx-2], t)*P[Nx-2] - kvals["v_func"](kvals, kvals["X"][Nx-1], t)*P[Nx-1]) / kvals["deltax"] \
+    dudt_P[x_i] = kvals.D_P*disc_diffusion_term(kvals, P, x_i) \
+                    - (-kvals.v_func(kvals, kvals.X[Nx-2], t)*P[Nx-2] - kvals.v_func(kvals, kvals.X[Nx-1], t)*P[Nx-1]) / kvals.deltax \
                     + R_P(kvals, J, M, A, P, t, x_i, P_cyto_r)
 
     return dudt_J + dudt_M + dudt_A + dudt_P
 
 
-def run_model(args=None):
-    if args is None:
-        args = {}
-    params = {**DEFAULT_PARAMETERS, **args}
+def run_model(args={}):
 
-    # calculate other widely used values
-    X = np.linspace(params["x0"], params["xL"], params["Nx"])
-    deltax = np.abs(X[1] - X[0])
+    kvals = Parameters(**args)
 
-    # key values
-    kvals: dict = {**params, "X": X, "deltax": deltax}
-
-    # default time points for solver output
-    kvals["t_eval"] = kvals["t_eval"] if "t_eval" in kvals else np.linspace(kvals["t0"], kvals["tL"], int(kvals["points_per_second"] * np.abs(kvals["tL"] - kvals["t0"])))
-
-    # default initial condition (just all 0) if none passed
-    kvals["initial_condition"] = kvals["initial_condition"] if "initial_condition" in kvals else [0]*(kvals["Nx"]*4)
-
-    sol = integrate.solve_ivp(odefunc, [kvals["t0"], kvals["tL"]], kvals["initial_condition"], method="BDF",
-                              t_eval=kvals["t_eval"], args=(kvals,))
+    sol = integrate.solve_ivp(odefunc, [kvals.t0, kvals.tL], kvals.initial_condition, method="BDF",
+                              t_eval=kvals.t_eval, args=(kvals,))
 
     return sol, kvals

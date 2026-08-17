@@ -2,20 +2,18 @@
 from typing import Callable, Optional
 import numpy as np
 from dataclasses import dataclass, field
-
 from scipy import integrate
 
-def default_v_func(x, t):
+def default_v_func(k: Parameters, x, t):
     v_time = 600
     time_scaling = 1 / np.maximum(1, t / 10 - v_time / 10)
     c = 1/4
     s = c / 4
-    xL_original = 67.3
-    peak = 0.1/xL_original
+    peak = 0.1/67.3
     return time_scaling * peak * np.exp(-(x - c) ** 2 / (2 * s ** 2))
 
 # No advection case (for maintenance/loss)
-def zero_v_func(x, t):
+def zero_v_func(k: Parameters, x, t):
     return 0
 
 @dataclass(frozen=True) # To be safe don't let this be modified after initialisation as could mess with X and deltax
@@ -182,30 +180,30 @@ def odefunc(t, U, k: Parameters):
     # diffusion function handles left boundary
     for x_i in np.arange(0, Nx-1):
         dudt_J[x_i] = k.D_J*disc_diffusion_term(k, J, x_i) \
-                        -k.sigmaJ*disc_spatial_derivative(k, lambda x_ii: k.v_func(k.X[x_ii], t)*J[x_ii], x_i) \
+                        -k.sigmaJ*disc_spatial_derivative(k, lambda x_ii: k.v_func(k, k.X[x_ii], t)*J[x_ii], x_i) \
                         + R_J(k, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r)
         dudt_M[x_i] = k.D_M*disc_diffusion_term(k, M, x_i) \
-                        -k.sigmaM*disc_spatial_derivative(k, lambda x_ii: k.v_func(k.X[x_ii], t)*M[x_ii], x_i) \
+                        -k.sigmaM*disc_spatial_derivative(k, lambda x_ii: k.v_func(k, k.X[x_ii], t)*M[x_ii], x_i) \
                         + R_M(k, J, M, A, P, t, x_i, A_cyto_r)
         dudt_A[x_i] = k.D_A*disc_diffusion_term(k, A, x_i) \
                         + R_A(k, J, M, A, P, t, x_i, A_cyto_r)
         dudt_P[x_i] = k.D_P*disc_diffusion_term(k, P, x_i) \
-                        -k.sigmaP*disc_spatial_derivative(k, lambda x_ii: k.v_func(k.X[x_ii], t)*P[x_ii], x_i) \
+                        -k.sigmaP*disc_spatial_derivative(k, lambda x_ii: k.v_func(k, k.X[x_ii], t)*P[x_ii], x_i) \
                         + R_P(k, J, M, A, P, t, x_i, P_cyto_r)
 
     # manually handle right boundary ( x_i = Nx-1 ) since v(x,t) is odd
     # reflect Nx over Nx-1 to Nx-2; for v_func, also negate on the reflection as v(x)=-v(-x)
     x_i = Nx-1
     dudt_J[x_i] = k.D_J*disc_diffusion_term(k, J, x_i) \
-                    - (-k.v_func(k.X[Nx-2], t)*J[Nx-2] - k.v_func(k.X[Nx-1], t)*J[Nx-1]) / k.deltax \
+                    - (-k.v_func(k, k.X[Nx-2], t)*J[Nx-2] - k.v_func(k, k.X[Nx-1], t)*J[Nx-1]) / k.deltax \
                     + R_J(k, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r)
     dudt_M[x_i] = k.D_M*disc_diffusion_term(k, M, x_i) \
-                    - (-k.v_func(k.X[Nx-2], t)*M[Nx-2] - k.v_func(k.X[Nx-1], t)*M[Nx-1]) / k.deltax \
+                    - (-k.v_func(k, k.X[Nx-2], t)*M[Nx-2] - k.v_func(k, k.X[Nx-1], t)*M[Nx-1]) / k.deltax \
                     + R_M(k, J, M, A, P, t, x_i, A_cyto_r)
     dudt_A[x_i] = k.D_A*disc_diffusion_term(k, A, x_i) \
                     + R_A(k, J, M, A, P, t, x_i, A_cyto_r)
     dudt_P[x_i] = k.D_P*disc_diffusion_term(k, P, x_i) \
-                    - (-k.v_func(k.X[Nx-2], t)*P[Nx-2] - k.v_func(k.X[Nx-1], t)*P[Nx-1]) / k.deltax \
+                    - (-k.v_func(k, k.X[Nx-2], t)*P[Nx-2] - k.v_func(k, k.X[Nx-1], t)*P[Nx-1]) / k.deltax \
                     + R_P(k, J, M, A, P, t, x_i, P_cyto_r)
 
     return dudt_J + dudt_M + dudt_A + dudt_P
@@ -216,7 +214,6 @@ def run_model(args={}):
     
     # Update any parameters with passed args, otherwise we use defaults
     kvals = Parameters(**args)
-    # kvals = replace(DEFAULT_PARAMETERS, **args)
 
     # Solve
     sol = integrate.solve_ivp(odefunc, 
