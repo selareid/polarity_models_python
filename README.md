@@ -10,18 +10,21 @@ Code to run various polarity models. Requires Python 3.11 or later.
 ## Quickstart
 
 1. Clone the repository:
+
    \`\`\`bash
    git clone https://github.com/selareid/polarity_models_python.git
    cd polarity_models_python
    \`\`\`
 
 2. Create and activate a virtual environment:
+
    \`\`\`bash
    python -m venv .venv
    source .venv/bin/activate      # on Windows: .venv\Scripts\activate
    \`\`\`
 
 3. Install the package (and its dependencies):
+
    \`\`\`bash
    pip install -e .
    \`\`\`
