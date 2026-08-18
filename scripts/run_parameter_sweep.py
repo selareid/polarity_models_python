@@ -41,17 +41,13 @@ def run_parameter_sweep(param_name, default_value, param_multipliers, update_arg
     # Run tasks in parallel
     res_list = model_task_handler.run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=n_procs)
 
-    # Convert the setup to a dictionary, so it's easier to work with later
-    res_list_conv = {label: (res[0], asdict(res[1])) for label, res in res_list}
-
     # Add in the scaling factor for the parameter for reference later
-    for label, res in res_list_conv.items():
+    for label, res in res_list:
         label_split = label.split("=",1)
         assert(len(label_split) == 2)
         res[1][label_split[0]] = float(label_split[1])
 
-    # Return as a list of results ordered by increasing multiplier
-    return([res_list_conv[sorted_label] for sorted_label in sorted(res_list_conv.keys())])
+    return(res_list)
 
 
 if __name__ == '__main__':
