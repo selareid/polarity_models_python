@@ -22,8 +22,8 @@ def P_cyto(kvals, P): return kvals.rho_P - kvals.psi * Ybar(kvals, P)
 @dataclass(frozen=True) # To be safe don't let this be modified after initialisation as could mess with X and deltax
 class Parameters:
     Species: tuple[str, ...] = ("A", "P") # Use tuple instead of list for immutability
-    label: str = "goehring"
-    points_per_second: float = 2
+    # label: str = "goehring"
+    points_per_second: float = 0.01
 
     # General Setup Variables
     Nx: int = 100  # number of length steps
@@ -65,7 +65,7 @@ class Parameters:
             object.__setattr__(self, 'initial_condition', ( [1] * (self.Nx) + [0]*self.Nx ) )
         if self.t_eval is None:
             t_eval = np.linspace(self.t0, self.tL, 
-                                int(self.points_per_second * np.abs(self.tL - self.t0)))
+                                int(self.points_per_second * np.abs(self.tL - self.t0)) + 1)
             object.__setattr__(self, 't_eval', t_eval)
 
 DEFAULT_PARAMETERS = Parameters()

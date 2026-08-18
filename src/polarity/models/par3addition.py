@@ -40,8 +40,8 @@ class Parameters:
     D_A: float = 0.28
     D_P: float = 0.15
 
-    k1: float = 9.01*10**(-3)
-    k2: float = 1.64*10**(-3)
+    konM: float = 9.01*10**(-3) # Was k1
+    kdisp: float = 1.64*10**(-3) # Was k2
 
     kJP: float = 6.16*10**(-2)
     kMP: float = 4.41*10**(-2)
@@ -83,7 +83,7 @@ class Parameters:
             object.__setattr__(self, 'initial_condition', ( [1] * (self.Nx*3) + [0]*self.Nx ) )
         if self.t_eval is None:
             t_eval = np.linspace(self.t0, self.tL, 
-                                int(self.points_per_second * np.abs(self.tL - self.t0)))
+                                int(self.points_per_second * np.abs(self.tL - self.t0)) + 1)
             object.__setattr__(self, 't_eval', t_eval)
 
 DEFAULT_PARAMETERS = Parameters()
@@ -112,13 +112,13 @@ def disc_spatial_derivative(kvals: Parameters, func: Callable[[int], float], x_i
     return (func(x_i + 1) - func(x_i)) / kvals.deltax
 
 
-R_J = lambda kvals, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r: -kvals.k1*A_cyto_r*J[x_i] + kvals.k2*M[x_i] \
+R_J = lambda kvals, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r: -kvals.konM*A_cyto_r*J[x_i] + kvals.kdisp*M[x_i] \
                                                     + kvals.konJ*J_cyto_r - kvals.koffJ*J[x_i] \
                                                     - kvals.kJP*P[x_i]**kvals.alpha*J[x_i]
-R_M = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals.k1*A_cyto_r*J[x_i] - kvals.k2*M[x_i] \
+R_M = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals.konM*A_cyto_r*J[x_i] - kvals.kdisp*M[x_i] \
                                                     - kvals.koffM*M[x_i] \
                                                     - kvals.kMP*P[x_i]*M[x_i]  # added antagonism
-R_A = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals.k2*M[x_i] + kvals.konA*A_cyto_r - kvals.koffA*A[x_i] \
+R_A = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals.kdisp*M[x_i] + kvals.konA*A_cyto_r - kvals.koffA*A[x_i] \
                                                     - kvals.kAP*P[x_i]*A[x_i]  # added antagonism
 R_P = lambda kvals, J, M, A, P, t, x_i, P_cyto_r: kvals.konP*P_cyto_r - kvals.koffP*P[x_i] \
                                                     - kvals.kPA*(A[x_i]+M[x_i])**kvals.beta*P[x_i]

@@ -113,7 +113,7 @@ def format_param_label_math(label: str) -> str:
 
 
 
-def animate_plot(sol, kvals, save_file:str = None, rescale=False):
+def animate_plot(sol, kvals, save_file = None):
 
     # rescale so maximal protein quantity is 1
     v_rescale_for_visibility = 1.0/(0.0015*kvals.xL)

@@ -12,15 +12,16 @@ DATA_DIR = Path(__file__).resolve().parents[3] / "results"
 def worker(input, output):
     for model, args in iter(input.get, 'STOP'):
         label = args.pop('label', model.name)
+        calc_ss_initial_condition = args.pop('calc_ss_initial_condition', False)
         print(f"{time.time():.1f} Running task with label: {label}")
         try:
-            calc_ss_initial_condition = args.pop('calc_ss_initial_condition', False)
             result, setup = model_to_module(model).run_model(copy.deepcopy(args), 
                                                              calc_ss_initial_condition=calc_ss_initial_condition)
             output.put((label, (result, setup)))
         except Exception as e:
             print(f"{time.time():.1f} Exception occurred while running task with label {label}; {e}")
-            output.put((label, ("FAILURE",args)))
+            setup = model_to_module(model).Parameters(**args)
+            output.put((label, ("FAILURE",setup)))
 
 
 # Output of form {label: (result, setup)}

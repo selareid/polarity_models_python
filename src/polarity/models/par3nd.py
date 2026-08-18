@@ -87,7 +87,7 @@ class Parameters:
             object.__setattr__(self, 'initial_condition', ( [1] * (self.Nx*3) + [0]*self.Nx ) )
         if self.t_eval is None:
             t_eval = np.linspace(self.t0, self.tL, 
-                                int(self.points_per_second * np.abs(self.tL - self.t0)))
+                                int(self.points_per_second * np.abs(self.tL - self.t0)) + 1)
             object.__setattr__(self, 't_eval', t_eval)
 
 DEFAULT_PARAMETERS = Parameters()
