@@ -14,25 +14,28 @@ from polarity.utilities import model_task_handler, figure_helper as fh
 
 model = MODELS.PAR3ND
 # model = MODELS.GOEHRING
-multipliers = np.round(np.linspace(0.5, 1.5, num = 41), decimals=5) 
 
+multipliers = np.round(np.linspace(0.5, 1.5, num = 41), decimals=5) 
 tL = 300*60
 store_times = np.linspace(0, tL, num = 121)
 n_procs = 12
 
 
-def run_parameter_sweep(param_name, default_value, other_args = {}):
+def run_parameter_sweep(param_name, default_value, param_multipliers, update_args = {}):
     # Generate the parameter values we want to run
     # assert (np.min(multipliers) > 0.0) # Otherwise the sigfigs calc will crash
-    new_param_vals = [m*default_value for m in multipliers]
+    new_param_vals = [m*default_value for m in param_multipliers]
 
     # Loop over new values and generate a list of tasks
     task_list = []
-    for mult, param_val in zip(multipliers, new_param_vals):
+    for mult, param_val in zip(param_multipliers, new_param_vals):
         # Add to the task list
         label = f"{param_name}_mult={mult}"
-        task = (model, {**other_args, param_name: param_val, "t_eval": store_times, "tL": tL, 
-                        "calc_ss_initial_condition": True, "label": label})
+        task = (model, {
+                    **update_args, 
+                    "label": label, 
+                    param_name: param_val,
+                    })
         task_list.append(task)
 
     # Run tasks in parallel
@@ -67,7 +70,11 @@ if __name__ == '__main__':
     for param_name in parameters_list:
         print(f"Running establishment sensitivity analysis for parameter {param_name}")
         default_value = getattr(default_parameters, param_name)
-        res_list = run_parameter_sweep(param_name, default_value)  
+        update_args = {
+             "t_eval": store_times, "tL": tL, 
+             "calc_ss_initial_condition": True
+            }
+        res_list = run_parameter_sweep(param_name, default_value, multipliers, update_args)
 
         # Save the full dataset
         output_filename = Path(output_dir, f"{param_name}_sweep.pkl")

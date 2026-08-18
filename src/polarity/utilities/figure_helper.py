@@ -113,34 +113,34 @@ def format_param_label_math(label: str) -> str:
 
 
 
-def animate_plot(sol, kvals, save_file = None):
+def animate_plot(sol, kvals: dict, save_file = None):
 
     # rescale so maximal protein quantity is 1
-    v_rescale_for_visibility = 1.0/(0.0015*kvals.xL)
+    v_rescale_for_visibility = 1.0/(0.0015*kvals["xL"])
 
     # Initial plot
     fig, ax = plt.subplots()
     lines = []
-    df = convert_output_to_pandas(kvals.X, sol.y[:, 0], species=kvals.Species)
-    for i, sp in enumerate(kvals.Species):
-        line, = ax.plot(kvals.X, df[sp], label=sp, color=colours_map[sp])
+    df = convert_output_to_pandas(kvals["X"], sol.y[:, 0], species=kvals["Species"])
+    for i, sp in enumerate(kvals["Species"]):
+        line, = ax.plot(kvals["X"], df[sp], label=sp, color=colours_map[sp])
         lines.append(line)
 
-    # p_m = polarity_measure(kvals.X, sol.y[:, 0], model)
+    # p_m = polarity_measure(kvals["X"], sol.y[:, 0], model)
     # time_label = ax.text(0.1, 1.05, f"t={sol.t[0]} p={p_m:.4f}", transform=ax.transAxes, ha="center")
     time_label = ax.text(0.1, 1.05, f"t={sol.t[0]}", transform=ax.transAxes, ha="center")
-    linev, = ax.plot(kvals.X, [v_rescale_for_visibility*kvals.v_func(kvals, x, 0) for x in kvals.X], label="v", linestyle="--", color="black")
-    # ax.text(0.7, 1.05, kvals.label + ";Nx:" + str(Nx), transform=ax.transAxes, ha="center")
+    linev, = ax.plot(kvals["X"], [v_rescale_for_visibility*kvals["v_func"](kvals, x, 0) for x in kvals["X"]], label="v", linestyle="--", color="black")
+    # ax.text(0.7, 1.05, kvals["label"] + ";Nx:" + str(kvals["Nx"]), transform=ax.transAxes, ha="center")
 
-    ax.set(xlim=[kvals.x0, kvals.xL], ylim=[np.min(sol.y)-0.05,np.max(sol.y)+0.05], xlabel="x", ylabel="Y")
+    ax.set(xlim=[kvals["x0"], kvals["xL"]], ylim=[np.min(sol.y)-0.05,np.max(sol.y)+0.05], xlabel="x", ylabel="Y")
     ax.legend()
 
     def animate(t_i):
-        df_i = convert_output_to_pandas(kvals.X, sol.y[:, t_i], species=kvals.Species)
-        linev.set_ydata([v_rescale_for_visibility*kvals.v_func(kvals, x, sol.t[t_i]) for x in kvals.X])
-        for i, sp in enumerate(kvals.Species):
+        df_i = convert_output_to_pandas(kvals["X"], sol.y[:, t_i], species=kvals["Species"])
+        linev.set_ydata([v_rescale_for_visibility*kvals["v_func"](kvals, x, sol.t[t_i]) for x in kvals["X"]])
+        for i, sp in enumerate(kvals["Species"]):
             lines[i].set_ydata(df_i[sp])
-        # p_m = polarity_measure(kvals.X, sol.y[:, t_i], model)
+        # p_m = polarity_measure(kvals["X"], sol.y[:, t_i], model)
         time_label.set_text(f"t={sol.t[t_i]:.2f}")# p={p_m:.4f}")
         return (*lines, linev, time_label)
 

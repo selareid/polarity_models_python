@@ -9,6 +9,7 @@ import time
 import matplotlib
 from matplotlib import pyplot as plt, animation
 import numpy as np
+from dataclasses import asdict
 
 from polarity.utilities import model_task_handler, variation_task_helper, figure_helper, metric_functions
 from polarity.model_enums import MODELS, model_to_module
@@ -169,7 +170,7 @@ def get_homogeneous_initial_conditions(homogeneous_ic_goehring, homogeneous_ic_p
             case MODELS.PAR3ADD:
                 init_conds[MODELS.PAR3ADD] = res[1].y[:, -1]
 
-        model_to_module(res[0]).animate_plot(res[1], res[2], save_file=True, file_code="get_homogeneous_initial_condition_"+str(res[0]))
+        model_to_module(res[0]).animate_plot(res[1], asdict(res[2]), save_file=True, file_code="get_homogeneous_initial_condition_"+str(res[0]))
 
     print("Some stats of homogeneous F.P.:")
     print(f"Par3add Model: par3: {init_conds[MODELS.PAR3ADD][0]}, par3-PKC: {init_conds[MODELS.PAR3ADD][parameters_par3add["Nx"]]}, \
@@ -195,10 +196,10 @@ def do_establishment_run(init_conds, parameters_goehring, parameters_par3add, tL
             case MODELS.GOEHRING:
                 g_res = res
             case MODELS.PAR3ADD:
-                Module_Par3Add.animate_plot_apar_combo(res[1], res[2], save_file=True, no_par3=False)
+                Module_Par3Add.animate_plot_apar_combo(res[1], asdict(res[2]), save_file=True, no_par3=False)
                 p_res = res
 
-        model_to_module(res[0]).animate_plot(res[1], res[2], save_file=True)
+        model_to_module(res[0]).animate_plot(res[1], asdict(res[2]), save_file=True)
 
     comparison_animation(g_res[1], g_res[2], p_res[1], p_res[2], save_file=True)
 
@@ -321,7 +322,7 @@ def do_establishment_param_variation(Nx, init_conds, parameters_goehring,
     plt.savefig(fn2, bbox_inches="tight")
     print(f"Saved par3add variation plot to {fn2}")
 
-    Module_Par3Add.animate_plot(baseline_par3add[0], baseline_par3add[1], save_file=True, file_code="baselinepar3addtestanimation")
+    Module_Par3Add.animate_plot(baseline_par3add[0], asdict(baseline_par3add[1]), save_file=True, file_code="baselinepar3addtestanimation")
 
 
 def do_maintenance_param_variation(Nx, parameters_goehring, parameters_par3add,
@@ -450,8 +451,8 @@ def do_maintenance_param_variation(Nx, parameters_goehring, parameters_par3add,
     print(f"Saved par3add variation plot to {fn2}")
 
     # Plot animation of baseline
-    Module_Par3Add.animate_plot(baseline_par3add[0], baseline_par3add[1], save_file=True, file_code="baselinepar3addtestingmaintenance030325")
-    Module_Goehring.animate_plot(baseline_goehring[0], baseline_goehring[1], save_file=True,file_code="baselinegoehringtestingmaintenance030325")
+    Module_Par3Add.animate_plot(baseline_par3add[0], asdict(baseline_par3add[1]), save_file=True, file_code="baselinepar3addtestingmaintenance030325")
+    Module_Goehring.animate_plot(baseline_goehring[0], asdict(baseline_goehring[1]), save_file=True,file_code="baselinegoehringtestingmaintenance030325")
 
 
 # animated plot of both goehring and par3add overlaying one another

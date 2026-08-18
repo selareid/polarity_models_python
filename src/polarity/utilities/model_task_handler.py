@@ -1,7 +1,7 @@
 import copy
 import time
 from multiprocessing import Process, Queue, cpu_count
-import numpy as np
+from dataclasses import asdict
 
 from polarity.model_enums import model_to_module
 
@@ -15,16 +15,16 @@ def worker(input, output):
         calc_ss_initial_condition = args.pop('calc_ss_initial_condition', False)
         print(f"{time.time():.1f} Running task with label: {label}")
         try:
-            result, setup = model_to_module(model).run_model(copy.deepcopy(args), 
+            sol, setup = model_to_module(model).run_model(copy.deepcopy(args), 
                                                              calc_ss_initial_condition=calc_ss_initial_condition)
-            output.put((label, (result, setup)))
+            output.put((label, (sol, asdict(setup))))
         except Exception as e:
             print(f"{time.time():.1f} Exception occurred while running task with label {label}; {e}")
             setup = model_to_module(model).Parameters(**args)
-            output.put((label, ("FAILURE",setup)))
+            output.put((label, ("FAILURE", asdict(setup))))
 
 
-# Output of form {label: (result, setup)}
+# Output of form {label: (sol, setup)}
 def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5)) -> list[tuple[str, tuple]]:
 
     assert NUMBER_OF_PROCESSES >= 1

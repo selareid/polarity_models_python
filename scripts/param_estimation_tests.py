@@ -3,6 +3,7 @@
 # for the grid search that we used
 # to get the chosen par3add parameter set
 
+from dataclasses import asdict
 import os
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
@@ -43,7 +44,7 @@ def do_goehring_steady_state():
         ]
     goehring_res_list = model_task_handler.run_tasks_parallel(tasks, 3)
     for label, res in goehring_res_list:
-        fh.animate_plot(res[0], res[1], save_file = output_dir / f"goehring_{label}")
+        fh.animate_plot(res[0], asdict(res[1]), save_file = output_dir / f"goehring_{label}")
 
 
 def do_par3add_J_M_only():

@@ -9,8 +9,12 @@ def default_v_func(kvals, x, t):
     v_time = 600
     time_factor = 1 / np.maximum(1, t / 10 - v_time / 10)
 
-    center = kvals.xL / 4
-    sd = np.minimum(center / 4, (kvals.xL - center) / 4)
+    if isinstance(kvals, dict):
+        xL = kvals["xL"]
+    else:
+        xL = kvals.xL
+    center = xL / 4
+    sd = np.minimum(center / 4, (xL - center) / 4)
     peak = 0.1
 
     return time_factor * peak * np.exp(-(x - center) ** 2 / (2 * sd ** 2))
