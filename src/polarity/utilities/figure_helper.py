@@ -11,6 +11,7 @@ from polarity.model_enums import MODELS
 # from polarity.utilities.metric_functions import polarity_measure
 
 FIGURES_DIR = Path(__file__).resolve().parents[3] / "figures"
+DATA_DIR = Path(__file__).resolve().parents[3] / "results"
 
 # Plot style
 font_size = 16
@@ -21,8 +22,8 @@ page_width_fig = 12
 # colours
 plot_colours = ['#377eb8','#4daf4a','#984ea3','#ff7f00', "#36454f", '#e41a1c']
 colours_map = dict(zip(["J", "M", "A", "P", "polarity", "other"], plot_colours))
-goehring_colours = ["magenta", "gold"]
-par3add_colours = ["green", "purple", "blue", "orange"]
+cmap_polarity = plt.cm.colors.LinearSegmentedColormap.from_list("", [colours_map["polarity"], "white"])
+cmap_interface = plt.cm.colors.LinearSegmentedColormap.from_list("", [colours_map["J"], "white", colours_map["P"]])
 
 # labels
 goehring_labels = ["aPar", "pPar"]
@@ -43,7 +44,7 @@ plt.rc('legend', fontsize=label_font_size)
 
 
 # Convert a single time point from the ODE solver to a pandas dataframe for easier plotting ------------------------------------
-def convert_output_to_pandas(X, Y, species = ["J", "M", "A", "P"]):
+def convert_output_to_pandas(X, Y, species = ("J", "M", "A", "P")):
     Nx = len(X)
     assert(np.shape(Y)[0] == (Nx*len(species)))
     df = DataFrame({'x': X})
@@ -54,14 +55,14 @@ def convert_output_to_pandas(X, Y, species = ["J", "M", "A", "P"]):
 
 
 # Convert a multiple time points from the ODE solver to a pandas dataframe for easier plotting ------------------------------------
-def convert_time_output_to_pandas(X, Y, t, species = ["J", "M", "A", "P"]):
+def convert_time_output_to_pandas(X, Y, t, species = ("J", "M", "A", "P")):
     df_list = [convert_output_to_pandas(X,Y[:,i], species=species).assign(t = t_i) for i,t_i in enumerate(t)]
     return concat(df_list, ignore_index=True)
 
 
 
 # Plot the species profiles --------------------------------------------------------------------------------------------------
-def plot_time_point(ax, X, Y, legend = False, v_func = None, species = ["J", "M", "A", "P"]):
+def plot_time_point(ax, X, Y, legend = False, v_func = None, species = ("J", "M", "A", "P")):
 
     df = convert_output_to_pandas(X, Y, species=species)
     X = df['x']

@@ -11,18 +11,20 @@ DATA_DIR = Path(__file__).resolve().parents[3] / "results"
 
 def worker(input, output):
     for model, args in iter(input.get, 'STOP'):
-        print(f"{time.time():.1f} Running task for model: {model}")
+        label = args.pop('label', model.name)
+        print(f"{time.time():.1f} Running task with label: {label}")
         try:
-            result = model_to_module(model).run_model(copy.deepcopy(args))
-            output.put((model, result))
+            calc_ss_initial_condition = args.pop('calc_ss_initial_condition', False)
+            result, setup = model_to_module(model).run_model(copy.deepcopy(args), 
+                                                             calc_ss_initial_condition=calc_ss_initial_condition)
+            output.put((label, (result, setup)))
         except Exception as e:
-            print(f"{time.time():.1f} Exception occurred while running task for model {model}; {e}")
-            output.put((model, ("FAILURE",args)))
+            print(f"{time.time():.1f} Exception occurred while running task with label {label}; {e}")
+            output.put((label, ("FAILURE",args)))
 
 
-# Output of form [(model, sol, kvals),...]
-def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5), callback=None) -> list[tuple]:
-# def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=8, callback=None) -> list[tuple]:
+# Output of form {label: (result, setup)}
+def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5)) -> list[tuple[str, tuple]]:
 
     assert NUMBER_OF_PROCESSES >= 1
     assert cpu_count() >= NUMBER_OF_PROCESSES
@@ -45,15 +47,10 @@ def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5), call
 
     # get and handle results (unordered)
     for i in range(len(task_list)):
-        model, res = done_queue.get()
-        model_res_combo = (model,)+res
-        output_list.append(model_res_combo)
+        label, res = done_queue.get()
+        output_list.append((label, res))
 
-        if callback != None:
-            print(f"{time.time()} Running callback!")
-            callback(model_res_combo)
-
-        print(f"{time.time():.1f} Finished running a task for model: {model}")
+        print(f"{time.time():.1f} Finished running a task for label: {label}")
         print(f"{len(task_list)-len(output_list)} tasks remaining")
 
     # stop child processes
@@ -63,42 +60,25 @@ def run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=int(cpu_count()/1.5), call
     return output_list
 
 
-def run_tasks(task_list, callback=None) -> list[tuple]:
-    return run_tasks_parallel(task_list, 1, callable)
+def run_tasks(task_list) -> list[tuple[str, tuple]]:
+    return run_tasks_parallel(task_list, 1)
 
 
-def load_or_run(name: str, tasks: list[tuple], force_run=False) -> list[tuple]:
-    filename = f"{name}_{bad_hash_for_filename(tasks):.7g}"
+# def load_or_run(filename: str, tasks: list[tuple], force_run=False) -> list[tuple]:
+#     full_path = DATA_DIR / f"{filename}.npy"
 
-    try:
-        if force_run:
-            raise Exception("force_run=True")
+#     try:
+#         if force_run:
+#             raise Exception("force_run=True")
         
-        loaded_data = np.load( DATA_DIR / f"{filename}.npy", allow_pickle=True)
-        print(f"Loading of {name} succeeded!")
-        return loaded_data
-    except Exception as e:
-        print(f"Failed loading of {name} because: " + str(e))
-        res = run_tasks_parallel(tasks)
+#         loaded_data = np.load( DATA_DIR / f"{filename}.npy", allow_pickle=True)
+#         print(f"Loading of {name} succeeded!")
+#         return loaded_data
+#     except Exception as e:
+#         print(f"Failed loading of {name} because: " + str(e))
+#         res = run_tasks_parallel(tasks)
 
-        print("Saving results")
-        np.save( DATA_DIR / f"{filename}.npy", res, allow_pickle=True)
+#         print("Saving results")
+#         np.save( DATA_DIR / f"{filename}.npy", res, allow_pickle=True)
 
-        return res
-
-
-def bad_hash_for_filename(tasks):
-    bad_hash = 0
-
-    for task in tasks:
-        params = task[1]
-        for key in params:
-            element = params[key]
-            if isinstance(element, (int, float)):
-                bad_hash += element
-            elif key == "initial_condition":
-                bad_hash += np.sum(element)
-    
-    bad_hash += len(tasks)
-    
-    return bad_hash
+#         return res

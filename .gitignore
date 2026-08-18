@@ -6,3 +6,5 @@ PKG-INFO
 *.gif
 *.pdf
 *.npy
+*.pkl
+*.png

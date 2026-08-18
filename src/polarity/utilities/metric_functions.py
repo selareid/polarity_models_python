@@ -6,8 +6,7 @@ from polarity.model_enums import MODELS
 
 # Polarity Measure -----------------------------------------------------------------------------------------------------
 # A,P just on membrane
-def polarity_measure(X, Y, model: MODELS):
-    species = ["A", "P"] if model == MODELS.GOEHRING else ["J", "M", "A", "P"]
+def polarity_measure(X, Y, species = ("J", "M", "A", "P")):
     df = convert_output_to_pandas(X, Y, species = species)
     measure, _, _ = polarity_get_all(X, df.A, df.P)
     return measure
@@ -52,11 +51,9 @@ def polarity_get_all(X, Am, Pm):
 
 
 # Find the interface (crossover point) between the basal (YB) and apical (YA) species ---------------------------------------
-def find_interface(X, Y, model: MODELS):
-
+def find_interface(X, Y, species = ("J", "M", "A", "P")):
     # Get appropriate species for the model
-    species = ["J", "M", "A", "P"] if model != MODELS.GOEHRING else ["A", "P"]
-    apical_species = "J" if model != MODELS.GOEHRING else "A"
+    apical_species = "J" if "J" in species else "A"
     df = convert_output_to_pandas(X, Y, species = species)
     YB = df.P # Basal species (same between models)
     YA = df[apical_species] # Apical species

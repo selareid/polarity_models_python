@@ -1,71 +1,77 @@
 # https://stackoverflow.com/questions/17053671/how-do-you-stop-numpy-from-multithreading
-import os
-os.environ['OPENBLAS_NUM_THREADS'] = '1'
+# import os
+# os.environ['OPENBLAS_NUM_THREADS'] = '12'
 import numpy as np
 from matplotlib import pyplot as plt
+import pickle
+from dataclasses import asdict, fields
+from pathlib import Path
+from time import time
 
 from polarity.model_enums import MODELS, model_to_module
-from polarity.utilities import model_task_handler
-
-def a_func(kvals, lt, x): return 0
-def v_func_old(kvals, x, t):
-    # return np.minimum(0.7, np.maximum(0, x - 35)) / (np.max([t, 100]) - 99) ** 3
-    return -x*(x-67.3)*(x-30) / (50000*(np.maximum(1,np.abs((t-200)/150)))**2)
-    # return 0
-
-def v_func_zero(kvals, x, t):
-    return 0
+from polarity.utilities import model_task_handler, figure_helper as fh
 
 
-# task format is tuples like (model, args) in a list
-# TASKS = [(MODELS.GOEHRING, {"points_per_second": 1, "tL": 1000, "Nx": 100}),]
+model = MODELS.PAR3ND
+# model = MODELS.GOEHRING
+multipliers = np.round(np.linspace(0.5, 1.5, num = 41), decimals=5) 
 
-Nx=100
-TASKS = [(MODELS.GOEHRING, {"points_per_second": 3, "tL": 1, "Nx":100, 
-                            "initial_condition": [0] * (Nx // 2) + [1] * (Nx - Nx // 2) + [1] * (Nx // 2) + [0] * (Nx - Nx // 2),
-                            "label":"maintenance IC", "v_func": v_func_zero})]
+tL = 300*60
+store_times = np.linspace(0, tL, num = 121)
+n_procs = 12
 
 
+def run_parameter_sweep(param_name, default_value, other_args = {}):
+    # Generate the parameter values we want to run
+    # assert (np.min(multipliers) > 0.0) # Otherwise the sigfigs calc will crash
+    new_param_vals = [m*default_value for m in multipliers]
 
-# TASKS = [(MODELS.GOEHRING, {"label": "Dp=0.5", "points_per_second": 1, "tL": 300, "D_P": 0.5, "Nx": 300}),
-#          (MODELS.GOEHRING, {"label": "Dp=0.2", "points_per_second": 1, "tL": 300, "D_P": 0.2, "Nx": 300}),
-#          (MODELS.GOEHRING, {"label": "Dp=0.1", "points_per_second": 1, "tL": 300, "D_P": 0.1, "Nx": 300}),
-#          (MODELS.GOEHRING, {"label": "Dp=0.01", "points_per_second": 1, "tL": 300, "D_P": 0.01, "Nx": 300}),]
+    # Loop over new values and generate a list of tasks
+    task_list = []
+    for mult, param_val in zip(multipliers, new_param_vals):
+        # Add to the task list
+        label = f"{param_name}_mult={mult}"
+        task = (model, {**other_args, param_name: param_val, "t_eval": store_times, "tL": tL, 
+                        "calc_ss_initial_condition": True, "label": label})
+        task_list.append(task)
+
+    # Run tasks in parallel
+    res_list = model_task_handler.run_tasks_parallel(task_list, NUMBER_OF_PROCESSES=n_procs)
+
+    # Convert the setup to a dictionary, so it's easier to work with later
+    res_list_conv = {label: (res[0], asdict(res[1])) for label, res in res_list}
+
+    # Add in the scaling factor for the parameter for reference later
+    for label, res in res_list_conv.items():
+        label_split = label.split("=",1)
+        assert(len(label_split) == 2)
+        res[1][label_split[0]] = float(label_split[1])
+
+    # Return as a list of results ordered by increasing multiplier
+    return([res_list_conv[sorted_label] for sorted_label in sorted(res_list_conv.keys())])
+
 
 if __name__ == '__main__':
-    # freeze_support()
+    
+    # Get the parameter names from the model's DEFAULT_PARAMETERS dataclass, just consider rate parameters and densities
+    default_parameters = model_to_module(model).DEFAULT_PARAMETERS
+    parameters_list = [f.name for f in fields(default_parameters) if f.name.startswith(('k', 'rho'))]
+    print(parameters_list)
+    
+    output_dir = model_task_handler.DATA_DIR / f"sensitivity_establishment_{model.name}"
+    if not Path(output_dir).exists():
+            Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    results = model_task_handler.run_tasks_parallel(TASKS)
+    # Run for each parameter and store
+    start_time = time()
+    for param_name in parameters_list:
+        print(f"Running establishment sensitivity analysis for parameter {param_name}")
+        default_value = getattr(default_parameters, param_name)
+        res_list = run_parameter_sweep(param_name, default_value)  
 
-    results.sort(key=lambda res: 0 if res[1]=="FAILURE" or not "sort" in res[2] else res[2]["sort"])  # order when plotting multiple solutions on single figure
-
-    sol_list = []
-    kvals_list = []
-
-    for res in results:
-        if res[1] == "FAILURE":
-            continue
-
-        model_module = model_to_module(res[0])
-
-        ### Plots and Animated Plots for individual solutions
-        # model_module.plot_overall_quantities_over_time(res[1], res[2])
-        # model_module.plot_final_timestep(res[1], res[2])
-        model_module.animate_plot(res[1], res[2], save_file=True, rescale=False)
-        # model_module.plot_lt(res[1], res[2])
-
-        print(f"Last time: A={res[1].y[0, -1]} P={res[1].y[-1, -1]}")
-
-        sol_list.append(res[1])
-        kvals_list.append(res[2])
-
-
-
-    ### Below Outputs Final Timestep for All Solutions ###
-    # it makes some assumptions about the input e.g. all same shape for time/space, that all inputs are relevant, ...
-    ### For goehring
-    # model_module = model_to_module(MODELS.GOEHRING)
-    # model_module.plot_multi_final_timestep(sol_list, kvals_list)
-
-
-    plt.show()  # if we don't have this the program ends and the plots close
+        # Save the full dataset
+        output_filename = Path(output_dir, f"{param_name}_sweep.pkl")
+        with open(output_filename, 'wb') as f:
+                pickle.dump(res_list, f)
+    
+    print(f"Total time taken for sensitivity analysis: {(time()-start_time)/60:.1f} minutes")

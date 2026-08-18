@@ -18,7 +18,7 @@ def default_v_func(kvals, x, t):
 
 @dataclass(frozen=True) # To be safe don't let this be modified after initialisation as could mess with X and deltax
 class Parameters:
-    Species = ["J", "M", "A", "P"]
+    Species: tuple[str, ...] = ("J", "M", "A", "P") # Use tuple instead of list for immutability
     label: str = "par3addition"
 
     # General Setup Variables
@@ -85,6 +85,8 @@ class Parameters:
             t_eval = np.linspace(self.t0, self.tL, 
                                 int(self.points_per_second * np.abs(self.tL - self.t0)))
             object.__setattr__(self, 't_eval', t_eval)
+
+DEFAULT_PARAMETERS = Parameters()
 
 
 Ybar = lambda kvals, Y: 2 * integrate.simpson(Y, x = kvals.X) / kvals.L  # all of J,A,P-bar
@@ -181,11 +183,23 @@ def odefunc(t, U, kvals):
     return dudt_J + dudt_M + dudt_A + dudt_P
 
 
-def run_model(args={}):
+def run_model(args={}, calc_ss_initial_condition=False):
+    if calc_ss_initial_condition:
+        args["initial_condition"] = run_for_ss_initial_condition(args)
 
     kvals = Parameters(**args)
-
     sol = integrate.solve_ivp(odefunc, [kvals.t0, kvals.tL], kvals.initial_condition, method="BDF",
                               t_eval=kvals.t_eval, args=(kvals,))
 
     return sol, kvals
+
+
+def run_for_ss_initial_condition(args = {}):
+    # Timings
+    output_times = [0, 2000]
+    tL = output_times[-1]
+    sol0, _ = run_model({**args,
+        "t_eval": output_times, "tL": tL,
+        "v_func": lambda kvals, x, t: 0  # no advection for steady state
+    })
+    return sol0.y[:,-1]

@@ -18,7 +18,7 @@ def zero_v_func(k: Parameters, x, t):
 
 @dataclass(frozen=True) # To be safe don't let this be modified after initialisation as could mess with X and deltax
 class Parameters:
-    Species = ["J", "M", "A", "P"]
+    Species: tuple[str, ...] = ("J", "M", "A", "P") # Use tuple instead of list for immutability
     
     # General space specification variables
     Nx: int = 101
@@ -210,7 +210,10 @@ def odefunc(t, U, k: Parameters):
 
 
 # To solve the model --------------------------------------------------------------------------------------
-def run_model(args={}):
+def run_model(args={}, calc_ss_initial_condition=False):
+
+    if calc_ss_initial_condition:
+        args["initial_condition"] = run_for_ss_initial_condition(args)
     
     # Update any parameters with passed args, otherwise we use defaults
     kvals = Parameters(**args)
@@ -228,10 +231,8 @@ def run_for_ss_initial_condition(args = {}):
     # Timings
     output_times = [0, 2000]
     tL = output_times[-1]
-    sol0, setup0 = run_model({
-        **args,
-        "t_eval": output_times,
-        "tL": tL,
+    sol0, _ = run_model({**args,
+        "t_eval": output_times, "tL": tL,
         "v_func": zero_v_func
     })
     return sol0.y[:,-1]
