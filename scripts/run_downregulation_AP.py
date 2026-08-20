@@ -4,38 +4,19 @@ from dataclasses import asdict
 from pathlib import Path
 from time import time
 
-from polarity.model_enums import MODELS, model_to_model_module
+from polarity.model_enums import MODELS, model_to_module
 from polarity.utilities import figure_helper as fh
-from run_parameter_sweep import run_parameter_sweep
+from scripts.run_parameter_sweep import run_parameter_sweep
 
 # Global parameters
 model = MODELS.PAR3ND
 # model = MODELS.GOEHRING
-model_module = model_to_model_module(model)
-data_dir = fh.DATA_DIR / f"cycle_sensitivity_{model.name}"
+model_module = model_to_module(model)
+data_dir = fh.DATA_DIR / f"cycle_sweeps_{model.name}"
 
 multipliers = np.round(np.linspace(0.1, 1.5, 57), decimals=3)
 tL = 300*60
 store_times = np.linspace(0, tL, num = 121)
-
-
-# Run for a short time to reach the initial condition
-def run_for_polarised_initial_condition(args = {}):
-    # These are the apically-dominant homogeneous steady-state concentrations for the default parameters
-    [J, M, A, P] = [0.96207572, 1.08219844, 0.18930604, 0.01458896]
-    Nx = model_module.DEFAULT_PARAMETERS.Nx
-    start_initial_condition = ([J] * Nx) + ([M] * Nx) + ([A] * Nx) + ([P] * Nx)
-    # Timings
-    ic_tL = 120*60
-    sol0, _ = model_module.run_model({
-        **args,
-        "t_eval": [0, ic_tL],
-        "tL": ic_tL,
-        "initial_condition": start_initial_condition
-    })
-    return sol0.y[:,-1]
-
-
 
 
 if __name__ == '__main__':
@@ -50,7 +31,7 @@ if __name__ == '__main__':
     param_j = "rho_P"
 
     # Initial condition
-    polarised_ic = run_for_polarised_initial_condition()
+    polarised_ic = model_module.run_for_polarised_initial_condition()
     
     # Get the default values for the parameters
     default_value_i = getattr(model_module.DEFAULT_PARAMETERS, param_i)

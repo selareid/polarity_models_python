@@ -18,6 +18,8 @@ font_size = 16
 label_font_size = 14
 line_width = 3
 page_width_fig = 12
+# Set global savefig default to tight bounding box
+plt.rcParams['savefig.bbox'] = 'tight'
 
 # colours
 plot_colours = ['#377eb8','#4daf4a','#984ea3','#ff7f00', "#36454f", '#e41a1c']

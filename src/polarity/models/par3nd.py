@@ -227,12 +227,26 @@ def run_model(args={}, calc_ss_initial_condition=False):
 
 
 # Function to get the steady state initial condition -------------------------------------------------------
-def run_for_ss_initial_condition(args = {}):
+def run_for_ss_initial_condition(args = {}) -> list:
     # Timings
     output_times = [0, 2000]
     tL = output_times[-1]
     sol0, _ = run_model({**args,
         "t_eval": output_times, "tL": tL,
         "v_func": zero_v_func
+    })
+    return sol0.y[:,-1]
+
+
+def run_for_polarised_initial_condition(args = {}) -> list:
+    # Get the homogeneous steady state initial condition first
+    start_initial_condition = run_for_ss_initial_condition(args)
+    # Timings
+    ic_tL = 120*60
+    sol0, _ = run_model({
+        **args,
+        "t_eval": [0, ic_tL],
+        "tL": ic_tL,
+        "initial_condition": start_initial_condition
     })
     return sol0.y[:,-1]

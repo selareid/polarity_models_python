@@ -53,13 +53,13 @@ base_params_par3add = {"psi": params_goehring.psi,
                        }
 
 # parameters we will vary
-# PARAMS_TO_VARY = ["kJP", "kMP", "kAP", "konJ",
-#                   "koffJ", "koffM", "koffA",
-#                   "konM", "kdisp",
-#                   "rho_J"
-#                   ]
+PARAMS_TO_VARY = ["kJP", "kMP", "kAP", "konJ",
+                  "koffJ", "koffM", "koffA",
+                  "konM", "kdisp",
+                  "rho_J"
+                  ]
 
-PARAMS_TO_VARY = ["kJP", "kMP", "kAP"]
+# PARAMS_TO_VARY = ["kJP", "kMP", "kAP"]
 
 # set range of parameter variation
 MAX_MULTIPLIER = 1.25
@@ -84,7 +84,7 @@ if not FIG_OUTPUT_FOLDER.exists():
 if not DAT_OUTPUT_FOLDER.exists():
     DAT_OUTPUT_FOLDER.mkdir(parents=True, exist_ok=True)
 
-NO_PLOT = False
+NO_PLOT = True
 MAX_REPETITIONS = 27  # max iterations of full variations run-through
 
 
@@ -131,7 +131,12 @@ def main():
 
     # Output best point to file
     with open( DAT_OUTPUT_FOLDER / "best_point.pkl", 'wb') as f:
-        dump(best_point, f)
+        final_params = {**params_par3add, **best_point[0]}
+        dump(final_params, f)
+    # Also print to console
+    print("\033[1;32mFinal parameter set:\033[0m")
+    for key, value in final_params.items():
+        print(f"{key}: {value:.4f}")
 
 
 def do_variations(params_par3add, goehring_results: tuple[list], variation_pairs: list[tuple],
@@ -159,22 +164,18 @@ def do_variations(params_par3add, goehring_results: tuple[list], variation_pairs
 
         # generate tasks
         tasks_hom = []
-        variation_info = {}
         for ppair in param_pairs:
-            label = f"{LABEL_P_HOM}_{p1}_{ppair[0]:.4f}_{p2}_{ppair[1]:.4f}"
-            variation_info[label] = {p1: ppair[0], p2: ppair[1]}
             task = (MODELS.PAR3ADD, {**params_par3add, p1: ppair[0], p2: ppair[1],
                                      "Nx": NX, "tL": TL_HOM, "initial_condition": INIT_COND_HOM,
-                                     "label": label,
+                                     "label": f"{LABEL_P_HOM}_{p1}_{ppair[0]:.4f}_{p2}_{ppair[1]:.4f}",
                                      "v_func": v_func_zero,
                                      })
             tasks_hom.append(task)
 
         # load or run to get results
         res_hom_all = load_or_run(f"{LABEL_P_HOM}_{p1}_{p2}_{iter_id}", tasks_hom)
-        # res_hom_all = model_task_handler.run_tasks_parallel(tasks_hom, NUMBER_OF_PROCESSES=12)
         for label, res in res_hom_all:
-            res[1]["variation_info"] = variation_info[label]
+            res[1]["variation_info"] = {p1: res[1][p1], p2: res[1][p2]}  # add variation info to results for later reference
 
         # generate polarisation tasks
         tasks_pol = []
@@ -187,12 +188,11 @@ def do_variations(params_par3add, goehring_results: tuple[list], variation_pairs
                 hsim = calculate_similarity_gp(goehring_results[0], init_cond_pol)
                 if hsim > 5:
                     continue
-                new_label = f"{LABEL_P_POL}_{p1}_{varied_params_value[p1]:.4f}_{p2}_{varied_params_value[p2]:.4f}"
-                variation_info[new_label] = varied_params_value
                 task = (MODELS.PAR3ADD, {**params_par3add,
                                          **varied_params_value,
-                                         "Nx": NX, "tL": TL_EST, "initial_condition": init_cond_pol,
-                                         "label": new_label,
+                                         "Nx": NX, "tL": TL_EST, 
+                                         "initial_condition": init_cond_pol,
+                                         "label": f"{LABEL_P_POL}_{p1}_{varied_params_value[p1]:.4f}_{p2}_{varied_params_value[p2]:.4f}"
                                          })
                 tasks_pol.append(task)
             else:
@@ -201,7 +201,7 @@ def do_variations(params_par3add, goehring_results: tuple[list], variation_pairs
         # load or run to get results
         res_pol_all = load_or_run(f"{LABEL_P_POL}_{p1}_{p2}_{iter_id}", tasks_pol)
         for label, res in res_pol_all:
-            res[1]["variation_info"] = variation_info[label]
+            res[1]["variation_info"] = {p1: res[1][p1], p2: res[1][p2]}
 
         # compare with goehring
         comparisons = goehring_comparer(goehring_results, res_hom_all, res_pol_all)

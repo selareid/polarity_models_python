@@ -23,7 +23,7 @@ def default_v_func(kvals, x, t):
 @dataclass(frozen=True) # To be safe don't let this be modified after initialisation as could mess with X and deltax
 class Parameters:
     Species: tuple[str, ...] = ("J", "M", "A", "P") # Use tuple instead of list for immutability
-    label: str = "par3addition"
+    # label: str = "par3addition"
 
     # General Setup Variables
     Nx: int = 100  # number of length step
@@ -205,5 +205,19 @@ def run_for_ss_initial_condition(args = {}):
     sol0, _ = run_model({**args,
         "t_eval": output_times, "tL": tL,
         "v_func": lambda kvals, x, t: 0  # no advection for steady state
+    })
+    return sol0.y[:,-1]
+
+
+def run_for_polarised_initial_condition(args = {}) -> list:
+    # Get the homogeneous steady state initial condition first
+    start_initial_condition = run_for_ss_initial_condition(args)
+    # Timings
+    ic_tL = 120*60
+    sol0, _ = run_model({
+        **args,
+        "t_eval": [0, ic_tL],
+        "tL": ic_tL,
+        "initial_condition": start_initial_condition
     })
     return sol0.y[:,-1]
