@@ -144,10 +144,9 @@ def run_model(args={}, calc_ss_initial_condition=False):
     return sol, kvals
 
 
-def run_for_ss_initial_condition(args = {}) -> list:
+def run_for_ss_initial_condition(args = {}, tL = 2000) -> list:
     # Timings
-    output_times = [0, 2000]
-    tL = output_times[-1]
+    output_times = [0, tL]
     sol0, _ = run_model({**args,
         "t_eval": output_times, "tL": tL,
         "v_func": lambda kvals, x, t: 0  # no advection for steady state
@@ -155,11 +154,10 @@ def run_for_ss_initial_condition(args = {}) -> list:
     return sol0.y[:,-1]
 
 
-def run_for_polarised_initial_condition(args = {}) -> list:
+def run_for_polarised_initial_condition(args = {}, ic_tL = 120*60) -> list:
     # Get the homogeneous steady state initial condition first
     start_initial_condition = run_for_ss_initial_condition(args)
     # Timings
-    ic_tL = 120*60
     sol0, _ = run_model({
         **args,
         "t_eval": [0, ic_tL],

@@ -206,6 +206,7 @@ def do_variations(params_par3add, goehring_results: tuple[list], variation_pairs
         # compare with goehring
         comparisons = goehring_comparer(goehring_results, res_hom_all, res_pol_all)
         for c in comparisons:
+            print(c)
             if best_point[1] is None or best_point[1] > c[2]:  # found lower polarised difference
                 best_point = (c[0], c[2])
 
@@ -317,6 +318,7 @@ def goehring_comparer(goehring_results: tuple[list], res_hom_all: list[tuple],
 
 
 def calculate_similarity_gp(goehring_res: list, par3add_res: list):
+    assert len(goehring_res) == (len(par3add_res)/2)
     return linalg.vector_norm(goehring_res -
                               np.concatenate((par3add_res[NX:2*NX] + par3add_res[2*NX:3*NX], par3add_res[3*NX:])))
 
@@ -340,14 +342,14 @@ def get_goehring_res(pol_time_divider: int = 1) -> tuple:
 
 
 def get_goehring_homo_ic():
-    task = (MODELS.GOEHRING, {"tL": TL_HOM,
+    task = (MODELS.GOEHRING, {"tL": TL_HOM, "Nx": NX,
                               "initial_condition": [1]*NX + [0]*NX, "v_func": v_func_zero})
     label, res = model_task_handler.run_tasks([task])[0]
     return res[0].y[:, -1]
 
 
 def get_goehring_polarised(initial_condition, pol_time_divider: int = 1):
-    task = (MODELS.GOEHRING, {"tL": TL_EST,
+    task = (MODELS.GOEHRING, {"tL": TL_EST, "Nx": NX,
                               "initial_condition": initial_condition})
     label, res = model_task_handler.run_tasks([task])[0]
     # return res[1].y[:, -1] if not pol_half_time else res[1].y[:, res[1].y.shape(1)//pol_time_divider]

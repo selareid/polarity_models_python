@@ -4,7 +4,7 @@ import numpy as np
 from dataclasses import dataclass, field
 from scipy import integrate
 
-def default_v_func(k: Parameters, x, t):
+def default_v_func(k, x, t):
     v_time = 600
     time_scaling = 1 / np.maximum(1, t / 10 - v_time / 10)
     c = 1/4
@@ -13,7 +13,7 @@ def default_v_func(k: Parameters, x, t):
     return time_scaling * peak * np.exp(-(x - c) ** 2 / (2 * s ** 2))
 
 # No advection case (for maintenance/loss)
-def zero_v_func(k: Parameters, x, t):
+def zero_v_func(k, x, t):
     return 0
 
 @dataclass(frozen=True) # To be safe don't let this be modified after initialisation as could mess with X and deltax
@@ -227,10 +227,9 @@ def run_model(args={}, calc_ss_initial_condition=False):
 
 
 # Function to get the steady state initial condition -------------------------------------------------------
-def run_for_ss_initial_condition(args = {}) -> list:
+def run_for_ss_initial_condition(args = {}, tL = 2000) -> list:
     # Timings
-    output_times = [0, 2000]
-    tL = output_times[-1]
+    output_times = [0, tL]
     sol0, _ = run_model({**args,
         "t_eval": output_times, "tL": tL,
         "v_func": zero_v_func
@@ -238,11 +237,10 @@ def run_for_ss_initial_condition(args = {}) -> list:
     return sol0.y[:,-1]
 
 
-def run_for_polarised_initial_condition(args = {}) -> list:
+def run_for_polarised_initial_condition(args = {}, ic_tL = 120*60) -> list:
     # Get the homogeneous steady state initial condition first
     start_initial_condition = run_for_ss_initial_condition(args)
     # Timings
-    ic_tL = 120*60
     sol0, _ = run_model({
         **args,
         "t_eval": [0, ic_tL],

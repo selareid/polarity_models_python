@@ -21,7 +21,7 @@ def worker(input, output):
         except Exception as e:
             print(f"{time.time():.1f} Exception occurred while running task with label {label}; {e}")
             setup = model_to_module(model).Parameters(**args)
-            output.put((label, ("FAILURE", asdict(setup))))
+            output.put((label, (None, asdict(setup))))
 
 
 # Output of form {label: (sol, setup)}

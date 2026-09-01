@@ -8,3 +8,5 @@ PKG-INFO
 *.npy
 *.pkl
 *.png
+_*/
+*.log
