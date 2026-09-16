@@ -1,8 +1,8 @@
 # Polarity Models Python
-Code to run various polarity models. Requires Python 3.11 or later.
+Code to run the model and generate the results for the manuscript "A mathematical model of epithelial apico-basal polarisation, and application to the endometrial cell polarity cycle".
 
 ## Dependencies
-
+Requires Python 3.11 or later.
 - scipy (v1.15.2)
 - matplotlib (v3.10.0)
 - numpy (v2.2.3)
