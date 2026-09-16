@@ -15,7 +15,7 @@ n_ss = height(steady_states);
 steady_states.stability = repmat(["stable"],n_ss,1);
 steady_states.eigenvalues = NaN(n_ss,4);
 for idx = 1:n_ss
-    steady_states(idx,[4, 1, 2, 3])
+    % steady_states(idx,[4, 1, 2, 3])
     Jac = get_jacobian(steady_states.J(idx), steady_states.M(idx), ...
                     steady_states.A(idx), steady_states.P(idx), params);
     
@@ -39,19 +39,19 @@ function Jac = get_jacobian(J, M, A, P, parms)
 
     grad_J = [
         -parms.konM*A_cyto + parms.konJ*dJcyto_dJ - parms.koffJ - parms.kJP*P, % dj'/dj
-        -parms.konM*dAcyto_dM*J + parms.kdisp + parms.konJ*dJcyto_dM,  % dj'/dm
+        -parms.konM*dAcyto_dM*J + parms.kdisM + parms.konJ*dJcyto_dM,  % dj'/dm
         -parms.konM*dAcyto_dA*J, % dj'/da
         -parms.kJP*J % dj'/dp
     ]';
     grad_M = [
         parms.konM*A_cyto, % dm'/dj
-        parms.konM*dAcyto_dM*J - parms.kdisp - parms.koffM - parms.kMP*P, % dm'/dm
+        parms.konM*dAcyto_dM*J - parms.kdisM - parms.koffM - parms.kMP*P, % dm'/dm
         parms.konM*dAcyto_dA*J, % dm'/da
         -parms.kMP * M % dm'/dp
     ]';
     grad_A = [
         0, % da'/dj
-        parms.kdisp, % da'/dm
+        parms.kdisM, % da'/dm
         -parms.koffA - parms.kAP*P, % da'/da
         -parms.kAP*A % da'/dp
     ]';

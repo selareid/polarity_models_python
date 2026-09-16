@@ -37,9 +37,9 @@ legend('r_j=0', 'r_a=0', "Domain edges")
 %% Plot subregion of interest
 
 figure(2)
-clear figure;
+clf('reset');
 hold on;
-subregion_MA = [0 1.5 0 0.4];
+subregion_MA = [0 1.2 0 0.6];
 fimplicit(nc_rj, subregion_MA, 'MeshDensity',5000);
 fimplicit(nc_ra, subregion_MA, 'MeshDensity',5000);
 
@@ -67,8 +67,22 @@ writetable(asym_jcyto_data);
 
 
 %% Find steady state values and stability
-sols = solve([nc_rj, nc_ra], [xM, yA]);
+% sols = solve([nc_rj, nc_ra], [xM, yA]);
+guess = [0.3; 0.03];
+digits(50)
+sols = vpasolve([nc_rj, nc_ra], [xM, yA], guess);
 steady_states = steady_states_analysis(sols, params)
 
 % Write to file
 writetable(steady_states)
+
+% Check reaction term values if getting a warning from vpasolve
+% fh_rj = matlabFunction(lhs(nc_rj), 'Vars', [xM yA]);
+% fh_ra = matlabFunction(lhs(nc_ra), 'Vars', [xM yA]);
+% for i = 1:height(steady_states)
+%     steady_states(i,:)
+%     M = steady_states.M(i);
+%     A = steady_states.A(i);
+%     rJ = fh_rj(M, A)
+%     rA = fh_ra(M, A)
+% end

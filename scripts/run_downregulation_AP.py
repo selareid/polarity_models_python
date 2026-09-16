@@ -6,7 +6,7 @@ from time import time
 
 from polarity.model_enums import MODELS, model_to_module
 from polarity.utilities import figure_helper as fh
-from scripts.run_parameter_sweep import run_parameter_sweep
+from run_parameter_sweep import run_parameter_sweep
 
 # Global parameters
 model = MODELS.PAR3ND
@@ -54,5 +54,5 @@ if __name__ == '__main__':
         output_filename = Path(data_dir, f"param_i_level_{level}.pkl")
         with open(output_filename, 'wb') as f:
             pickle.dump(res_list, f)
-
+    # Approx. 2 hours for 57 levels of each parameter on 12 cores, Mac Studio
     print(f"Total time taken for cycle sensitivity: {(time()-start_time)/60:.1f} minutes")

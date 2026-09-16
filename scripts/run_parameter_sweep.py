@@ -1,6 +1,4 @@
-# https://stackoverflow.com/questions/17053671/how-do-you-stop-numpy-from-multithreading
-# import os
-# os.environ['OPENBLAS_NUM_THREADS'] = '12'
+
 import numpy as np
 from matplotlib import pyplot as plt
 import pickle
@@ -26,13 +24,13 @@ def main():
     output_dir_est = model_task_handler.DATA_DIR / f"sensitivity_establishment_{model.name}"
     if not Path(output_dir_est).exists():
         Path(output_dir_est).mkdir(parents=True, exist_ok=True)
-    # run_establishment_sensitivity_analysis(output_dir_est)
+    run_establishment_sensitivity_analysis(output_dir_est)
     
     # Loss (mid-secretory phase) sensitivity
     output_dir_MS = model_task_handler.DATA_DIR / f"sensitivity_MS_loss_{model.name}"
     if not Path(output_dir_MS).exists():
         Path(output_dir_MS).mkdir(parents=True, exist_ok=True)
-    # run_loss_sensitivity_analysis(output_dir_MS, rho_A_mult=0.5, rho_P_mult=0.4)
+    run_loss_sensitivity_analysis(output_dir_MS, rho_A_mult=0.5, rho_P_mult=0.4)
 
     # Loss (late-secretory phase) sensitivity
     output_dir_LS = model_task_handler.DATA_DIR / f"sensitivity_LS_loss_{model.name}"
@@ -74,7 +72,8 @@ def run_parameter_sweep(param_name, default_value, param_multipliers, update_arg
 def run_establishment_sensitivity_analysis(output_dir):
     # Get the parameter names from the model's DEFAULT_PARAMETERS dataclass, just consider rate parameters and densities
     default_parameters = model_to_module(model).DEFAULT_PARAMETERS
-    parameters_list = [f.name for f in fields(default_parameters) if f.name.startswith(('k', 'rho'))]
+    parameters_list = [f.name for f in fields(default_parameters) 
+                       if f.name.startswith(('k', 'rho')) and f.name != "konA"]
     print(parameters_list)
 
     # Run for each parameter and store
@@ -107,7 +106,7 @@ def run_loss_sensitivity_analysis(output_dir, rho_A_mult, rho_P_mult):
 
     # List of parameters to sweep over for loss sensitivity analysis
     parameters_list = [f.name for f in fields(default_parameters) 
-                       if f.name.startswith(('k', 'rho')) and f.name not in ['rho_A', 'rho_P']]
+                       if f.name.startswith(('k', 'rho')) and f.name not in ['rho_A', 'rho_P', 'konA']]
     print(parameters_list)
 
     # Get the initial conditions (proliferative phase polarised state)

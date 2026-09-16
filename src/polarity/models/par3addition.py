@@ -40,30 +40,31 @@ class Parameters:
     psi: float = 0.174
 
     D_J: float = 0.28
-    D_M: float = 7.5*10**(-2)
+    D_M: float = 0.075
     D_A: float = 0.28
     D_P: float = 0.15
 
-    konM: float = 9.01*10**(-3) # Was k1
-    kdisp: float = 1.64*10**(-3) # Was k2
+    konM: float = 0.00804 # Was k1, previously 9.01e-3
+    kdisM: float = 0.00258 # Was k2, previously 1.64e-3
 
-    kJP: float = 6.16*10**(-2)
-    kMP: float = 4.41*10**(-2)
-    kAP: float = 4.61*10**(-1)
-    kPA: float = 2
-
+    kJP: float = 0.0733 # previously 6.16e-2
+    kMP: float = 0.0481 # previously 4.41e-2
+    kAP: float = 0.103 # previously 4.61e-1
+    kPA: float = 2.00
+    
     rho_J: float = 1.2
     rho_A: float = 1.56
-    rho_P: float = 1
+    rho_P: float = 1.0
+    
+    konJ: float = 0.0140
+    konP: float = 0.0474 
 
-    konJ: float = 1.4*10**(-2)
-    konP: float = 4.74*10**(-2)
-
-    koffJ: float = 1.17*10**(-3)
-    koffM: float = 8.44*10**(-3)
-    koffA: float = 2.65*10**(-3)
-    koffP: float = 7.3*10**(-3)
-
+    koffJ: float = 0.00274 # previously 1.17e-3
+    koffM: float = 0.00731 # previously 8.44e-3
+    koffA: float = 0.00585 # previously 2.65e-3
+    koffP: float = 0.0073
+    
+    # Not used
     sigmaJ: float = 1
     sigmaM: float = 1
     sigmaP: float = 1
@@ -116,13 +117,13 @@ def disc_spatial_derivative(kvals: Parameters, func: Callable[[int], float], x_i
     return (func(x_i + 1) - func(x_i)) / kvals.deltax
 
 
-R_J = lambda kvals, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r: -kvals.konM*A_cyto_r*J[x_i] + kvals.kdisp*M[x_i] \
+R_J = lambda kvals, J, M, A, P, t, x_i, A_cyto_r, J_cyto_r: -kvals.konM*A_cyto_r*J[x_i] + kvals.kdisM*M[x_i] \
                                                     + kvals.konJ*J_cyto_r - kvals.koffJ*J[x_i] \
                                                     - kvals.kJP*P[x_i]**kvals.alpha*J[x_i]
-R_M = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals.konM*A_cyto_r*J[x_i] - kvals.kdisp*M[x_i] \
+R_M = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals.konM*A_cyto_r*J[x_i] - kvals.kdisM*M[x_i] \
                                                     - kvals.koffM*M[x_i] \
                                                     - kvals.kMP*P[x_i]*M[x_i]  # added antagonism
-R_A = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals.kdisp*M[x_i] + kvals.konA*A_cyto_r - kvals.koffA*A[x_i] \
+R_A = lambda kvals, J, M, A, P, t, x_i, A_cyto_r: kvals.kdisM*M[x_i] + kvals.konA*A_cyto_r - kvals.koffA*A[x_i] \
                                                     - kvals.kAP*P[x_i]*A[x_i]  # added antagonism
 R_P = lambda kvals, J, M, A, P, t, x_i, P_cyto_r: kvals.konP*P_cyto_r - kvals.koffP*P[x_i] \
                                                     - kvals.kPA*(A[x_i]+M[x_i])**kvals.beta*P[x_i]
@@ -192,7 +193,7 @@ def run_model(args={}, calc_ss_initial_condition=False):
         args["initial_condition"] = run_for_ss_initial_condition(args)
 
     kvals = Parameters(**args)
-    sol = integrate.solve_ivp(odefunc, [kvals.t0, kvals.tL], kvals.initial_condition, method="BDF",
+    sol = integrate.solve_ivp(odefunc, [kvals.t0, kvals.tL], kvals.initial_condition, method = "LSODA", # method="BDF",
                               t_eval=kvals.t_eval, args=(kvals,))
 
     return sol, kvals

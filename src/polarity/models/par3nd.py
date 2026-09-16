@@ -40,29 +40,29 @@ class Parameters:
 
     # Diffusion parameters
     D_J: float = 0.28 / (67.3**2)   # D_J / (xL**2), 
-    D_M: float = 7.5e-2 / (67.3**2) # D_M / (xL**2),
+    D_M: float = 0.075 / (67.3**2) # D_M / (xL**2),
     D_A: float = 0.28 / (67.3**2)   # D_A / (xL**2),
     D_P: float = 0.15 / (67.3**2)   # D_P / (xL**2),
     
-    konM: float = 9.01e-3
-    kdisM: float = 1.64e-3
-    
-    kJP: float = 6.16e-2
-    kMP: float = 4.41e-2
-    kAP: float = 4.61e-1
-    kPA: float = 2
+    konM: float = 0.00804 # Was k1, previously 9.01e-3
+    kdisM: float = 0.00258 # Was k2, previously 1.64e-3
+
+    kJP: float = 0.0733 # previously 6.16e-2
+    kMP: float = 0.0481 # previously 4.41e-2
+    kAP: float = 0.103 # previously 4.61e-1
+    kPA: float = 2.00
     
     rho_J: float = 1.2
     rho_A: float = 1.56
     rho_P: float = 1.0
     
-    konJ: float = 1.4e-2
-    konP: float = 4.74e-2
-    
-    koffJ: float = 1.17e-3
-    koffM: float = 8.44e-3
-    koffA: float = 2.65e-3
-    koffP: float = 7.3e-3
+    konJ: float = 0.0140
+    konP: float = 0.0474 
+
+    koffJ: float = 0.00274 # previously 1.17e-3
+    koffM: float = 0.00731 # previously 8.44e-3
+    koffA: float = 0.00585 # previously 2.65e-3
+    koffP: float = 0.0073
     
     # Not used
     sigmaJ: float = 1
