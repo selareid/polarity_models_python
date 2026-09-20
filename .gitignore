@@ -1,0 +1,12 @@
+.DS_Store
+*.pyc
+*.txt
+.venv/
+PKG-INFO
+*.gif
+*.pdf
+*.npy
+*.pkl
+*.png
+_*/
+*.log

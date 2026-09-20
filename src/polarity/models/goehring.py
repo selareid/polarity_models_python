@@ -1,0 +1,167 @@
+# Based on Goehring et al. 2011
+from typing import Callable, Optional
+import numpy as np
+from dataclasses import dataclass, field
+from scipy import integrate
+
+def default_v_func(kvals, x, t):
+    v_time = 600
+    time_factor = 1 / np.maximum(1, t / 10 - v_time / 10)
+
+    center = kvals.xL / 4
+    sd = np.minimum(center / 4, (kvals.xL - center) / 4)
+    peak = 0.1
+
+    return time_factor * peak * np.exp(-(x - center) ** 2 / (2 * sd ** 2))
+
+
+Ybar = lambda kvals, Y: 2 * integrate.simpson(Y, x = kvals.X) / kvals.L  # handles both A-bar and P-bar
+def A_cyto(kvals, A): return kvals.rho_A - kvals.psi * Ybar(kvals, A)
+def P_cyto(kvals, P): return kvals.rho_P - kvals.psi * Ybar(kvals, P)
+
+@dataclass(frozen=True) # To be safe don't let this be modified after initialisation as could mess with X and deltax
+class Parameters:
+    Species: tuple[str, ...] = ("A", "P") # Use tuple instead of list for immutability
+    # label: str = "goehring"
+    points_per_second: float = 0.01
+
+    # General Setup Variables
+    Nx: int = 100  # number of length steps
+    L: float = 134.6  # length of region
+    x0: float = 0
+    xL: float = 67.3  # L / 2
+    t0: float = 0
+    tL: float = 9000
+
+    # Model parameters and functions
+    psi: float = 0.174
+    D_A: float = 0.28
+    D_P: float = 0.15
+    konA: float = 8.58 * 10 ** (-3)
+    konP: float = 4.74 * 10 ** (-2)
+    koffA: float = 5.4 * 10 ** (-3)
+    koffP: float = 7.3 * 10 ** (-3)
+    kAP: float = 0.190
+    kPA: float = 2.0
+    rho_A: float = 1.56
+    rho_P: float = 1.0
+
+    alpha: int = 1
+    beta: int = 2
+
+    v_func: Callable = default_v_func
+
+    # Need to do a little bit of processing for some of the parameters
+    X: np.ndarray = field(init = False) # Not set by user
+    deltax: float = field(init = False) # Not set by user
+    initial_condition: Optional[list] = None # Can be set by user, otherwise default is set in post init function
+    t_eval: Optional[np.ndarray] = None # Can be set by user, otherwise default is set in post init function
+
+    def __post_init__(self):
+        # We need to use object.__setattr__ since the dataclass is frozen
+        object.__setattr__(self, 'X', np.linspace(self.x0, self.xL, self.Nx))
+        object.__setattr__(self, 'deltax', np.abs(self.X[1] - self.X[0]))
+        if self.initial_condition is None:
+            object.__setattr__(self, 'initial_condition', ( [1] * (self.Nx) + [0]*self.Nx ) )
+        if self.t_eval is None:
+            t_eval = np.linspace(self.t0, self.tL, 
+                                int(self.points_per_second * np.abs(self.tL - self.t0)) + 1)
+            object.__setattr__(self, 't_eval', t_eval)
+
+DEFAULT_PARAMETERS = Parameters()
+
+
+def disc_diffusion_term(kvals: Parameters, Y, x_i):
+    # This function accounts for boundary reflection
+    if x_i == 0:  # left boundary
+        return (Y[1] - 2 * Y[0] + Y[1]) / kvals.deltax ** 2  # reflect Y[-1] to Y[1]
+    elif x_i == kvals.Nx - 1:  # right boundary
+        return (Y[kvals.Nx - 2] - 2 * Y[kvals.Nx - 1] + Y[kvals.Nx - 2]) / kvals.deltax ** 2  # reflect Y[Nx] over Nx-1 to Y[Nx-2]
+    else:  # internal point
+        return (Y[x_i + 1] - 2 * Y[x_i] + Y[x_i - 1]) / kvals.deltax ** 2
+
+
+# where func is a function of type x_i -> float
+def disc_spatial_derivative(kvals: Parameters, func: Callable[[int], float], x_i):
+    return (func(x_i + 1) - func(x_i)) / kvals.deltax
+
+R_A = lambda kvals, A, P, A_cyto_r, t, x_i: kvals.konA * A_cyto_r \
+    - kvals.koffA * A[x_i] - kvals.kAP * (P[x_i] ** kvals.alpha) * A[x_i]
+R_P = lambda kvals, A, P, P_cyto_r, t, x_i: kvals.konP * P_cyto_r \
+    - kvals.koffP * P[x_i] - kvals.kPA * (A[x_i] ** kvals.beta) * P[x_i]
+
+
+def odefunc(t, U, kvals):
+    assert len(U) == 2 * kvals.Nx
+
+    # Failure so odefunc doesn't run forever trying to fix numerical issues
+    if min(U) < -100 or max(U) > 100:
+        print(f"FAILURE with goehring labelled {kvals.label} at simulation time {t:.4f}")
+        # plot_failure(U, t, kvals)
+        raise AssertionError
+
+    A = U[:kvals.Nx]
+    P = U[kvals.Nx:]
+
+    dudt_A = np.zeros(kvals.Nx)
+    dudt_P = np.zeros(kvals.Nx)
+
+    # r is for "resolved"
+    A_cyto_r = A_cyto(kvals, A)
+    P_cyto_r = P_cyto(kvals, P)
+
+    # manually handle right boundary ( x_i = Nx-1 ) since v(x,t) is odd
+    # reflect Nx over Nx-1 to Nx-2; for v_func, also negate on the reflection as v(x)=-v(-x)
+    dudt_A[kvals.Nx-1] = kvals.D_A * disc_diffusion_term(kvals, A, kvals.Nx-1) \
+        - (-kvals.v_func(kvals, kvals.X[kvals.Nx-2], t) * A[kvals.Nx-2] - kvals.v_func(kvals, kvals.X[kvals.Nx-1], t) * A[kvals.Nx-1]) / kvals.deltax \
+        + R_A(kvals, A, P, A_cyto_r, t, kvals.Nx-1)
+    dudt_P[kvals.Nx-1] = kvals.D_P * disc_diffusion_term(kvals, P, kvals.Nx-1) \
+        - (-kvals.v_func(kvals, kvals.X[kvals.Nx-2], t) * P[kvals.Nx-2] - kvals.v_func(kvals, kvals.X[kvals.Nx-1], t) * P[kvals.Nx-1]) / kvals.deltax \
+        + R_P(kvals, A, P, P_cyto_r, t, kvals.Nx-1)
+
+    # insides
+    # diffusion function handles left boundary
+    for x_i in np.arange(0, kvals.Nx - 1):
+        dudt_A[x_i] = kvals.D_A * disc_diffusion_term(kvals, A, x_i) \
+              - disc_spatial_derivative(kvals, lambda x_ii: kvals.v_func(kvals, kvals.X[x_ii], t) * A[x_ii], x_i) \
+              + R_A(kvals, A, P, A_cyto_r, t, x_i)
+        dudt_P[x_i] = kvals.D_P * disc_diffusion_term(kvals, P, x_i) \
+              - disc_spatial_derivative(kvals, lambda x_ii: kvals.v_func(kvals, kvals.X[x_ii], t) * P[x_ii], x_i) \
+              + R_P(kvals, A, P, P_cyto_r, t, x_i)
+
+    return np.ravel([dudt_A, dudt_P])
+
+
+def run_model(args={}, calc_ss_initial_condition=False):
+    if calc_ss_initial_condition:
+        args["initial_condition"] = run_for_ss_initial_condition(args)
+
+    kvals = Parameters(**args)
+
+    sol = integrate.solve_ivp(odefunc, [kvals.t0, kvals.tL], kvals.initial_condition, method="BDF",
+                              t_eval=kvals.t_eval, args=(kvals,))
+
+    return sol, kvals
+
+
+def run_for_ss_initial_condition(args = {}, tL = 2000) -> list:
+    # Timings
+    output_times = [0, tL]
+    sol0, _ = run_model({**args,
+        "t_eval": output_times, "tL": tL,
+        "v_func": lambda kvals, x, t: 0  # no advection for steady state
+    })
+    return sol0.y[:,-1]
+
+
+def run_for_polarised_initial_condition(args = {}, ic_tL = 120*60) -> list:
+    # Get the homogeneous steady state initial condition first
+    start_initial_condition = run_for_ss_initial_condition(args)
+    # Timings
+    sol0, _ = run_model({
+        **args,
+        "t_eval": [0, ic_tL],
+        "tL": ic_tL,
+        "initial_condition": start_initial_condition
+    })
+    return sol0.y[:,-1]
